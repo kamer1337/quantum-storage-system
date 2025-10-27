@@ -237,7 +237,8 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 - Compression algorithms from Facebook ZSTD, Google Brotli, and LZ4 teams
 - Cloud storage APIs from Microsoft Azure, AWS, and Google Cloud
 
-## --- xRxD <1ee7>--- ##
+## --- xD <1ee7>--- ##
+
 
 
 **🌟 Transform your 5GB partition into a quantum-optimized storage powerhouse!**
