@@ -9,6 +9,7 @@
 #include <chrono>
 #include <queue>
 #include <functional>
+#include <atomic>
 
 namespace StorageOpt {
 
