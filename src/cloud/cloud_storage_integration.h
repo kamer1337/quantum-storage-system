@@ -10,6 +10,7 @@
 #include <chrono>
 #include <functional>
 #include <queue>
+#include <condition_variable>
 
 namespace StorageOpt {
 

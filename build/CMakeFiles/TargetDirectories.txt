@@ -1,0 +1,9 @@
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/QuantumStorageSystem.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/package.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/package_source.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/edit_cache.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/rebuild_cache.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/list_install_components.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/install.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/install/local.dir
+/home/runner/work/quantum-storage-system/quantum-storage-system/build/CMakeFiles/install/strip.dir
