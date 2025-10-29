@@ -13,6 +13,7 @@ QuantumStorageSystem::QuantumStorageSystem()
     ml_optimizer_ = std::make_unique<MLStorageOptimizer>();
     virtual_manager_ = std::make_unique<VirtualStorageManager>();
     compression_system_ = std::make_unique<AdvancedCompressionSystem>();
+    usb_driver_ = std::make_unique<USBDeviceDriver>();
     analytics_dashboard_ = std::make_unique<StorageAnalyticsDashboard>();
     cloud_integration_ = std::make_unique<CloudStorageIntegration>();
 }
@@ -52,13 +53,19 @@ bool QuantumStorageSystem::Initialize(const std::string& base_path, size_t physi
             return false;
         }
         
-        std::cout << "\n4. Initializing Storage Analytics Dashboard..." << std::endl;
+        std::cout << "\n4. Initializing USB Device Driver..." << std::endl;
+        if (!usb_driver_->Initialize()) {
+            std::cerr << "Warning: Failed to initialize USB Device Driver (continuing)" << std::endl;
+            // Continue even if USB driver fails - it's not critical
+        }
+        
+        std::cout << "\n5. Initializing Storage Analytics Dashboard..." << std::endl;
         if (!analytics_dashboard_->Initialize()) {
             std::cerr << "Failed to initialize Storage Analytics Dashboard" << std::endl;
             return false;
         }
         
-        std::cout << "\n5. Initializing Cloud Storage Integration..." << std::endl;
+        std::cout << "\n6. Initializing Cloud Storage Integration..." << std::endl;
         if (!cloud_integration_->Initialize()) {
             std::cerr << "Failed to initialize Cloud Storage Integration" << std::endl;
             return false;
@@ -92,6 +99,9 @@ void QuantumStorageSystem::Start() {
     std::cout << "Starting virtual storage management..." << std::endl;
     virtual_manager_->Start();
     
+    std::cout << "Starting USB device driver optimization..." << std::endl;
+    usb_driver_->Start();
+    
     std::cout << "Starting analytics dashboard..." << std::endl;
     analytics_dashboard_->Start();
     
@@ -115,6 +125,11 @@ void QuantumStorageSystem::Stop() {
         analytics_dashboard_->Stop();
     }
     
+    if (usb_driver_) {
+        std::cout << "Stopping USB device driver..." << std::endl;
+        usb_driver_->Stop();
+    }
+    
     if (virtual_manager_) {
         std::cout << "Stopping virtual storage manager..." << std::endl;
         virtual_manager_->Stop();
@@ -130,6 +145,10 @@ void QuantumStorageSystem::Stop() {
 
 void QuantumStorageSystem::Shutdown() {
     Stop();
+    
+    if (usb_driver_) {
+        usb_driver_->Shutdown();
+    }
     
     if (compression_system_) {
         compression_system_->Shutdown();
@@ -328,11 +347,22 @@ std::vector<std::string> QuantumStorageSystem::GetActiveOptimizations() {
     optimizations.push_back("✓ Machine Learning file optimization");
     optimizations.push_back("✓ Quantum space multiplication");
     optimizations.push_back("✓ Advanced compression algorithms");
+    optimizations.push_back("✓ USB device driver optimization");
     optimizations.push_back("✓ Intelligent file tiering");
     optimizations.push_back("✓ Real-time analytics and monitoring");
     optimizations.push_back("✓ Multi-cloud storage integration");
     optimizations.push_back("✓ Deduplication and sparse files");
     optimizations.push_back("✓ Predictive usage analysis");
+    
+    if (usb_driver_) {
+        auto devices = usb_driver_->GetDetectedDevices();
+        if (!devices.empty()) {
+            optimizations.push_back("✓ USB devices detected: " + std::to_string(devices.size()));
+            for (const auto& device : devices) {
+                optimizations.push_back("  - " + device.device_name + " (USB " + std::to_string(static_cast<int>(device.type)) + ")");
+            }
+        }
+    }
     
     if (virtual_manager_->GetSpaceMultiplier() > 3.0) {
         optimizations.push_back("✓ High quantum efficiency achieved");
