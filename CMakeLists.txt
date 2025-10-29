@@ -21,6 +21,7 @@ set(CORE_SOURCES
     src/core/ml_storage_optimizer.cpp
     src/core/virtual_storage_manager.cpp
     src/core/advanced_compression_system.cpp
+    src/core/usb_device_driver.cpp
 )
 
 set(ANALYTICS_SOURCES
