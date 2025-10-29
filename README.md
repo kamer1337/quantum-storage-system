@@ -134,8 +134,8 @@ usb_driver.Start();
 // Detect USB devices
 auto devices = usb_driver.GetDetectedDevices();
 for (const auto& device : devices) {
-    std::cout << device.device_name << " - USB " 
-              << static_cast<int>(device.type) << "\n";
+    std::cout << device.device_name << " - " 
+              << StorageOpt::USBDeviceTypeToString(device.type) << "\n";
 }
 
 // Set optimization mode

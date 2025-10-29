@@ -359,7 +359,7 @@ std::vector<std::string> QuantumStorageSystem::GetActiveOptimizations() {
         if (!devices.empty()) {
             optimizations.push_back("✓ USB devices detected: " + std::to_string(devices.size()));
             for (const auto& device : devices) {
-                optimizations.push_back("  - " + device.device_name + " (USB " + std::to_string(static_cast<int>(device.type)) + ")");
+                optimizations.push_back("  - " + device.device_name + " (" + USBDeviceTypeToString(device.type) + ")");
             }
         }
     }

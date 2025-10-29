@@ -216,4 +216,17 @@ private:
     bool SupportsFeature(const std::string& device_path, const std::string& feature);
 };
 
+// Utility function to convert USB device type to string
+inline std::string USBDeviceTypeToString(USBDeviceType type) {
+    switch (type) {
+        case USBDeviceType::USB_2_0: return "USB 2.0";
+        case USBDeviceType::USB_3_0: return "USB 3.0";
+        case USBDeviceType::USB_3_1: return "USB 3.1";
+        case USBDeviceType::USB_3_2: return "USB 3.2";
+        case USBDeviceType::USB_C: return "USB-C";
+        case USBDeviceType::UNKNOWN:
+        default: return "Unknown";
+    }
+}
+
 } // namespace StorageOpt
