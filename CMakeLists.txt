@@ -54,6 +54,59 @@ endif()
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
+# ImGui support
+option(USE_IMGUI "Enable ImGui GUI support" ON)
+
+if(USE_IMGUI)
+    # Fetch ImGui
+    include(FetchContent)
+    
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.90.1
+    )
+    
+    FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.3.8
+    )
+    
+    FetchContent_MakeAvailable(imgui glfw)
+    
+    # Find OpenGL
+    find_package(OpenGL REQUIRED)
+    
+    # Create ImGui library
+    set(IMGUI_DIR ${imgui_SOURCE_DIR})
+    add_library(imgui STATIC
+        ${IMGUI_DIR}/imgui.cpp
+        ${IMGUI_DIR}/imgui_demo.cpp
+        ${IMGUI_DIR}/imgui_draw.cpp
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+    )
+    
+    target_include_directories(imgui PUBLIC
+        ${IMGUI_DIR}
+        ${IMGUI_DIR}/backends
+    )
+    
+    target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+    
+    # Add ImGui GUI wrapper source
+    set(GUI_SOURCES
+        src/gui/imgui_gui.cpp
+    )
+    
+    target_sources(${PROJECT_NAME} PRIVATE ${GUI_SOURCES})
+    target_link_libraries(${PROJECT_NAME} imgui)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_IMGUI)
+endif()
+
 # Optional: Find and link compression libraries if available
 # find_package(PkgConfig)
 # if(PkgConfig_FOUND)
