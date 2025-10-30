@@ -56,9 +56,11 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 ### Prerequisites
 - C++ compiler with C++17 support (GCC 8+, Clang 7+, MSVC 2019+)
 - CMake 3.15 or higher
-- OpenGL 3.3+ compatible graphics driver
+- OpenGL 3.3+ compatible graphics driver (OpenGL loader is included via ImGui)
 - X11 development libraries (Linux) or appropriate windowing system
 - Windows 10/11, Linux, or macOS
+
+**Note**: The build system automatically downloads ImGui, GLFW, and includes the necessary OpenGL loader. No manual installation of these libraries is required.
 
 ### Build Instructions
 
