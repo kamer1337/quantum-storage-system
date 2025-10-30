@@ -13,6 +13,7 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 - **📊 Real-time Analytics**: Predictive usage analysis and performance monitoring
 - **☁️ Multi-Cloud Integration**: Seamless overflow to Azure, AWS, Google Cloud, and quantum cloud storage
 - **🎯 Intelligent Tiering**: Automatic file placement optimization based on access patterns
+- **🖥️ ImGui GUI Interface**: Modern graphical user interface with real-time visualization and interactive controls
 
 ### Key Capabilities
 - **Space Multiplication**: Achieve 2-10x effective storage capacity through quantum optimization
@@ -22,6 +23,7 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 - **Cloud Overflow**: Automatic tier management across multiple cloud providers
 - **Virtual File System**: Present larger virtual space than physical capacity
 - **Quantum Deduplication**: Advanced block-level deduplication with quantum entanglement
+- **Dual Interface**: Choose between modern ImGui GUI or traditional console interface
 
 ## 🛠️ Architecture
 
@@ -54,7 +56,11 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 ### Prerequisites
 - C++ compiler with C++17 support (GCC 8+, Clang 7+, MSVC 2019+)
 - CMake 3.15 or higher
-- Windows 10/11 (Linux and macOS support coming soon)
+- OpenGL 3.3+ compatible graphics driver (OpenGL loader is included via ImGui)
+- X11 development libraries (Linux) or appropriate windowing system
+- Windows 10/11, Linux, or macOS
+
+**Note**: The build system automatically downloads ImGui, GLFW, and includes the necessary OpenGL loader. No manual installation of these libraries is required.
 
 ### Build Instructions
 
@@ -64,22 +70,49 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
    cd quantum-storage-system
    ```
 
-2. **Create build directory**
+2. **Install dependencies (Linux)**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get install libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
+   
+   # Fedora/RHEL
+   sudo dnf install libX11-devel libXrandr-devel libXinerama-devel libXcursor-devel libXi-devel mesa-libGL-devel
+   ```
+
+3. **Create build directory**
    ```bash
    mkdir build
    cd build
    ```
 
-3. **Configure and build**
+4. **Configure and build**
    ```bash
    cmake ..
    cmake --build . --config Release
    ```
 
-4. **Run the system**
+5. **Run the system**
    ```bash
-   ./QuantumStorageSystem.exe
+   # Launch with GUI (default)
+   ./QuantumStorageSystem
+   
+   # Or explicitly with GUI
+   ./QuantumStorageSystem --gui
+   
+   # Or with console interface
+   ./QuantumStorageSystem --console
+   
+   # Show help
+   ./QuantumStorageSystem --help
    ```
+
+### Build Options
+
+You can disable ImGui support if needed:
+```bash
+cmake -DUSE_IMGUI=OFF ..
+cmake --build .
+```
 
 ### Quick Start
 
@@ -215,6 +248,15 @@ Seamless multi-cloud storage expansion:
 
 ## 🔮 Advanced Features
 
+### ImGui Graphical Interface
+- **Real-Time Dashboard**: View system status, storage metrics, and quantum multiplier in real-time
+- **Interactive File Operations**: Create, write, read, and delete virtual files through intuitive GUI
+- **Analytics Visualization**: Visual representation of storage efficiency and compression ratios
+- **Quantum Multiplication Display**: See space multiplication effects with progress bars and live metrics
+- **Multi-Window Layout**: Customizable window arrangement with dock support
+- **Menu Navigation**: Easy access to all features through organized menu system
+- **Console Fallback**: Automatically falls back to console mode if GUI cannot initialize
+
 ### Quantum Algorithms
 - **Quantum Deduplication**: Identify similar content across quantum state space
 - **Coherence Optimization**: Maintain optimal quantum states for maximum efficiency
@@ -245,10 +287,25 @@ Seamless multi-cloud storage expansion:
 
 ## 🎮 Interactive Demo
 
-Run the included demo to see quantum storage multiplication in action:
+### GUI Mode (Default)
+Run the GUI interface to see quantum storage multiplication in action with visual feedback:
 
 ```bash
-./QuantumStorageSystem.exe
+./QuantumStorageSystem
+```
+
+The ImGui interface will launch, providing:
+1. **System Status Window**: Real-time monitoring of storage metrics and quantum multiplier
+2. **Analytics Dashboard**: Performance graphs and storage efficiency visualization
+3. **File Operations**: Interactive file management with drag-and-drop support
+4. **Quantum Visualization**: Visual representation of space multiplication effects
+5. **Live Updates**: All metrics update in real-time as operations occur
+
+### Console Mode
+For headless environments or terminal preference:
+
+```bash
+./QuantumStorageSystem --console
 ```
 
 The demo will:
@@ -257,6 +314,7 @@ The demo will:
 3. Show real-time space multiplication (2-10x increase)
 4. Demonstrate ML-optimized compression
 5. Display analytics and performance metrics
+6. Provide interactive menu for file operations
 
 ## 🔧 Configuration
 

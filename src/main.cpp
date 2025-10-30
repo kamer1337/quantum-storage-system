@@ -1,9 +1,13 @@
 #include "quantum_storage_system.h"
+#ifdef USE_IMGUI
+#include "gui/imgui_gui.h"
+#endif
 #include <iostream>
 #include <string>
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <cstring>
 
 using namespace StorageOpt;
 
@@ -73,7 +77,29 @@ void demoQuantumMultiplication(QuantumStorageSystem& system) {
               << " GB of usable space through advanced optimization!" << std::endl;
 }
 
-int main() {
+int main(int argc, char** argv) {
+    // Check for command line arguments
+    bool use_gui = true;
+    bool use_console = false;
+    
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--console") == 0 || strcmp(argv[i], "-c") == 0) {
+            use_console = true;
+            use_gui = false;
+        } else if (strcmp(argv[i], "--gui") == 0 || strcmp(argv[i], "-g") == 0) {
+            use_gui = true;
+            use_console = false;
+        } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            std::cout << "Quantum Storage System - Usage:\n";
+            std::cout << "  " << argv[0] << " [options]\n\n";
+            std::cout << "Options:\n";
+            std::cout << "  --gui, -g      Launch with ImGui interface (default)\n";
+            std::cout << "  --console, -c  Launch with console interface\n";
+            std::cout << "  --help, -h     Show this help message\n";
+            return 0;
+        }
+    }
+    
     printHeader();
     
     std::cout << "Welcome to the Quantum Storage System!" << std::endl;
@@ -86,7 +112,7 @@ int main() {
     std::cout << "\nInitializing Quantum Storage System..." << std::endl;
     size_t physical_limit = 5ULL * 1024 * 1024 * 1024; // 5GB as requested
     
-    if (!system.Initialize("e:/imagedic/quantum_storage", physical_limit)) {
+    if (!system.Initialize("./quantum_storage", physical_limit)) {
         std::cerr << "Failed to initialize system!" << std::endl;
         return 1;
     }
@@ -95,7 +121,35 @@ int main() {
     system.Start();
     
     // Give systems a moment to start up
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    
+#ifdef USE_IMGUI
+    // Try to launch GUI if requested
+    if (use_gui) {
+        std::cout << "\nLaunching ImGui interface..." << std::endl;
+        
+        ImGuiGUI gui(&system);
+        if (gui.Initialize()) {
+            gui.Run();
+            system.Stop();
+            return 0;
+        } else {
+            std::cerr << "Failed to initialize GUI, falling back to console mode..." << std::endl;
+            use_console = true;
+        }
+    }
+#else
+    if (use_gui) {
+        std::cout << "\nGUI mode requested but ImGui support is not compiled in." << std::endl;
+        std::cout << "Falling back to console mode..." << std::endl;
+        use_console = true;
+    }
+#endif
+    
+    // Console mode
+    if (use_console) {
+        std::cout << "\nRunning in console mode..." << std::endl;
+    }
     
     int choice;
     std::string filename;
