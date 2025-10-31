@@ -10,7 +10,7 @@ if(MSVC)
     add_compile_options(/W4)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable)
 endif()
 
 # Include directories
@@ -55,31 +55,29 @@ find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
 # ImGui support
-option(USE_IMGUI "Enable ImGui GUI support" ON)
+option(USE_IMGUI "Enable ImGui GUI support" OFF)
 
 if(USE_IMGUI)
-    # Fetch ImGui
-    include(FetchContent)
+    # Use local ImGui
+    set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/src/third_party/imgui)
     
-    FetchContent_Declare(
-        imgui
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.90.1
-    )
-    
-    FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.8
-    )
-    
-    FetchContent_MakeAvailable(imgui glfw)
+    # Find GLFW
+    find_package(glfw3 QUIET)
+    if(NOT glfw3_FOUND)
+        # Fetch GLFW if not found
+        include(FetchContent)
+        FetchContent_Declare(
+            glfw
+            GIT_REPOSITORY https://github.com/glfw/glfw.git
+            GIT_TAG 3.3.8
+        )
+        FetchContent_MakeAvailable(glfw)
+    endif()
     
     # Find OpenGL
     find_package(OpenGL REQUIRED)
     
     # Create ImGui library
-    set(IMGUI_DIR ${imgui_SOURCE_DIR})
     add_library(imgui STATIC
         ${IMGUI_DIR}/imgui.cpp
         ${IMGUI_DIR}/imgui_demo.cpp
