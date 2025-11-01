@@ -16,6 +16,10 @@ QuantumStorageSystem::QuantumStorageSystem()
     usb_driver_ = std::make_unique<USBDeviceDriver>();
     analytics_dashboard_ = std::make_unique<StorageAnalyticsDashboard>();
     cloud_integration_ = std::make_unique<CloudStorageIntegration>();
+    encryption_manager_ = std::make_unique<EncryptionManager>();
+    batch_operation_manager_ = std::make_unique<BatchOperationManager>(this);
+    health_monitor_ = std::make_unique<HealthMonitor>(this);
+    performance_profiler_ = std::make_unique<PerformanceProfiler>(this);
 }
 
 QuantumStorageSystem::~QuantumStorageSystem() {
@@ -70,6 +74,28 @@ bool QuantumStorageSystem::Initialize(const std::string& base_path, size_t physi
             std::cerr << "Failed to initialize Cloud Storage Integration" << std::endl;
             return false;
         }
+        
+        std::cout << "\n7. Initializing Encryption Manager..." << std::endl;
+        if (!encryption_manager_->Initialize()) {
+            std::cerr << "Failed to initialize Encryption Manager" << std::endl;
+            return false;
+        }
+        
+        std::cout << "\n8. Initializing Batch Operation Manager..." << std::endl;
+        if (!batch_operation_manager_->Initialize()) {
+            std::cerr << "Failed to initialize Batch Operation Manager" << std::endl;
+            return false;
+        }
+        
+        std::cout << "\n9. Initializing Health Monitor..." << std::endl;
+        if (!health_monitor_->Initialize()) {
+            std::cerr << "Failed to initialize Health Monitor" << std::endl;
+            return false;
+        }
+        
+        std::cout << "\n10. Initializing Performance Profiler..." << std::endl;
+        // Performance profiler doesn't need initialization, just enable it
+        performance_profiler_->EnableProfiling();
         
         initialized_ = true;
         

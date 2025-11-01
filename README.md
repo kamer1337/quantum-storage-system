@@ -14,6 +14,9 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 - **☁️ Multi-Cloud Integration**: Seamless overflow to Azure, AWS, Google Cloud, and quantum cloud storage
 - **🎯 Intelligent Tiering**: Automatic file placement optimization based on access patterns
 - **🖥️ ImGui GUI Interface**: Modern graphical user interface with real-time visualization and interactive controls
+- **🔐 Encryption Manager**: Secure file encryption with AES-256, ChaCha20, and quantum-resistant algorithms
+- **⚡ Batch Operations**: High-performance parallel batch file operations with thread pool
+- **🏥 Health Monitoring**: Real-time system health monitoring with automatic alerts
 
 ### Key Capabilities
 - **Space Multiplication**: Achieve 2-10x effective storage capacity through quantum optimization
@@ -24,6 +27,9 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 - **Virtual File System**: Present larger virtual space than physical capacity
 - **Quantum Deduplication**: Advanced block-level deduplication with quantum entanglement
 - **Dual Interface**: Choose between modern ImGui GUI or traditional console interface
+- **Secure Encryption**: Multiple encryption algorithms including quantum-resistant options
+- **Batch Processing**: Parallel execution of bulk file operations with progress tracking
+- **Health Alerts**: Proactive monitoring with configurable thresholds and alert notifications
 
 ## 🛠️ Architecture
 
@@ -48,6 +54,15 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 ├─────────────────────────────────────────────────────────────┤
 │  ☁️ Cloud Storage Integration                              │
 │  └── Multi-cloud support, quantum cloud, hybrid tiering   │
+├─────────────────────────────────────────────────────────────┤
+│  🔐 Encryption Manager                                     │
+│  └── AES-256, ChaCha20, quantum-resistant encryption      │
+├─────────────────────────────────────────────────────────────┤
+│  ⚡ Batch Operation Manager                                │
+│  └── Parallel bulk operations, thread pool, progress tracking │
+├─────────────────────────────────────────────────────────────┤
+│  🏥 Health Monitor                                         │
+│  └── System health, alerts, metrics, threshold monitoring  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -199,6 +214,190 @@ usb_driver.RunDiagnostics(device_path);
     
     return 0;
 }
+```
+
+### Encryption Examples
+
+```cpp
+#include "core/encryption_manager.h"
+
+// Create and initialize encryption manager
+StorageOpt::EncryptionManager encryption;
+encryption.Initialize(StorageOpt::EncryptionAlgorithm::AES_256);
+
+// Generate encryption keys
+std::string key_id = encryption.GenerateKey(StorageOpt::EncryptionAlgorithm::AES_256);
+std::cout << "Generated key: " << key_id << "\n";
+
+// Encrypt data
+std::vector<uint8_t> data = {1, 2, 3, 4, 5};
+auto result = encryption.EncryptData(data, key_id);
+if (result.success) {
+    std::cout << "Data encrypted successfully\n";
+    std::cout << "Original size: " << result.original_size << " bytes\n";
+    std::cout << "Encrypted size: " << result.encrypted_size << " bytes\n";
+}
+
+// Encrypt a file
+auto file_result = encryption.EncryptFile("input.txt", "output.enc", key_id);
+if (file_result.success) {
+    std::cout << "File encrypted successfully\n";
+}
+
+// Decrypt the file
+auto decrypt_result = encryption.DecryptFile("output.enc", "decrypted.txt", key_id);
+if (decrypt_result.success) {
+    std::cout << "File decrypted successfully\n";
+}
+
+// List available keys
+auto keys = encryption.GetAvailableKeys();
+std::cout << "Available keys: " << keys.size() << "\n";
+```
+
+### Batch Operations Examples
+
+```cpp
+#include "core/batch_operation_manager.h"
+
+// Get batch operation manager from system
+auto* batch_mgr = system.GetBatchOperationManager();
+
+// Set progress callback
+batch_mgr->SetProgressCallback([](int completed, int total, const std::string& file) {
+    std::cout << "Progress: " << completed << "/" << total 
+              << " - Current: " << file << "\n";
+});
+
+// Create multiple files at once
+std::vector<std::pair<std::string, size_t>> files_to_create = {
+    {"file1.dat", 1024 * 1024},      // 1MB
+    {"file2.dat", 2 * 1024 * 1024},  // 2MB
+    {"file3.dat", 5 * 1024 * 1024}   // 5MB
+};
+auto result = batch_mgr->CreateFiles(files_to_create);
+std::cout << "Created " << result.successful_operations << " files\n";
+std::cout << "Execution time: " << result.execution_time_ms << " ms\n";
+
+// Delete multiple files in parallel
+std::vector<std::string> files_to_delete = {
+    "old_file1.dat", "old_file2.dat", "old_file3.dat"
+};
+result = batch_mgr->DeleteFiles(files_to_delete);
+std::cout << "Deleted " << result.successful_operations << " files\n";
+
+// Copy files in batch
+std::vector<std::pair<std::string, std::string>> copy_pairs = {
+    {"source1.dat", "backup1.dat"},
+    {"source2.dat", "backup2.dat"}
+};
+result = batch_mgr->CopyFiles(copy_pairs);
+```
+
+### Health Monitoring Examples
+
+```cpp
+#include "core/health_monitor.h"
+
+// Get health monitor from system
+auto* health = system.GetHealthMonitor();
+
+// Set alert callback
+health->SetAlertCallback([](const StorageOpt::SystemAlert& alert) {
+    std::cout << "ALERT [" << alert.component << "]: " 
+              << alert.message << "\n";
+});
+
+// Check overall system health
+auto status = health->GetOverallHealth();
+if (status == StorageOpt::HealthStatus::HEALTHY) {
+    std::cout << "System is healthy\n";
+} else if (status == StorageOpt::HealthStatus::WARNING) {
+    std::cout << "System has warnings\n";
+} else if (status == StorageOpt::HealthStatus::CRITICAL) {
+    std::cout << "System is in critical state!\n";
+}
+
+// Get all health metrics
+auto metrics = health->GetAllMetrics();
+for (const auto& metric : metrics) {
+    std::cout << metric.name << ": " << metric.value << metric.unit 
+              << " (status: " << static_cast<int>(metric.status) << ")\n";
+}
+
+// Get active alerts
+auto alerts = health->GetActiveAlerts();
+std::cout << "Active alerts: " << alerts.size() << "\n";
+for (const auto& alert : alerts) {
+    std::cout << "  - " << alert.message << "\n";
+}
+
+// Configure custom thresholds
+health->SetThreshold("cpu_usage", 80.0, 95.0);  // Warning at 80%, critical at 95%
+health->SetThreshold("memory_usage", 85.0, 97.0);
+```
+
+### Performance Profiling Examples
+
+```cpp
+#include "core/performance_profiler.h"
+
+// Get performance profiler from system
+auto* profiler = system.GetPerformanceProfiler();
+
+// Enable profiling
+profiler->EnableProfiling();
+
+// Use scoped profiling for automatic timing
+{
+    StorageOpt::PerformanceProfiler::ScopedProfile profile(profiler, "MyOperation", 1024);
+    // Your code here - timing is automatic
+    system.CreateFile("test.dat", 1024);
+}
+
+// Manual operation recording
+profiler->RecordOperation("custom_op", 45.5, 2048);  // 45.5ms, 2048 bytes
+
+// Run benchmarks
+auto file_create_result = profiler->BenchmarkFileCreation(100, 1024 * 1024);  // 100 files, 1MB each
+std::cout << "File Creation Benchmark:\n";
+std::cout << "  Operations/sec: " << file_create_result.operations_per_second << "\n";
+std::cout << "  Throughput: " << file_create_result.throughput_mbps << " MB/s\n";
+
+// Benchmark file writes
+auto write_result = profiler->BenchmarkFileWrite(50, 4096);  // 50 writes, 4KB each
+std::cout << "Write performance: " << write_result.throughput_mbps << " MB/s\n";
+
+// Benchmark compression
+std::vector<uint8_t> test_data(1024 * 1024, 0x42);  // 1MB test data
+auto compress_result = profiler->BenchmarkCompression(test_data);
+std::cout << "Compression ratio: " << compress_result.custom_metrics["compression_ratio"] << "x\n";
+
+// Benchmark encryption
+auto encrypt_result = profiler->BenchmarkEncryption(test_data);
+std::cout << "Encryption throughput: " << encrypt_result.throughput_mbps << " MB/s\n";
+
+// Custom benchmark
+auto custom_result = profiler->RunCustomBenchmark("My Custom Test", []() {
+    // Your custom benchmark code
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}, 100);  // Run 100 iterations
+
+// Get all performance metrics
+auto metrics = profiler->GetAllMetrics();
+for (const auto& metric : metrics) {
+    std::cout << metric.operation_name << ": "
+              << metric.avg_time_ms << " ms avg, "
+              << metric.call_count << " calls\n";
+}
+
+// Generate reports
+std::cout << profiler->GeneratePerformanceReport();
+std::cout << profiler->GenerateBenchmarkReport();
+
+// Export to CSV for analysis
+profiler->ExportMetricsToCSV("performance_metrics.csv");
+profiler->ExportBenchmarksToCSV("benchmark_results.csv");
 ```
 
 ## 🎯 How It Works

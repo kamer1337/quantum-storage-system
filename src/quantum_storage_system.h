@@ -4,6 +4,10 @@
 #include "core/virtual_storage_manager.h"
 #include "core/advanced_compression_system.h"
 #include "core/usb_device_driver.h"
+#include "core/encryption_manager.h"
+#include "core/batch_operation_manager.h"
+#include "core/health_monitor.h"
+#include "core/performance_profiler.h"
 #include "analytics/storage_analytics_dashboard.h"
 #include "cloud/cloud_storage_integration.h"
 
@@ -21,6 +25,10 @@ private:
     std::unique_ptr<USBDeviceDriver> usb_driver_;
     std::unique_ptr<StorageAnalyticsDashboard> analytics_dashboard_;
     std::unique_ptr<CloudStorageIntegration> cloud_integration_;
+    std::unique_ptr<EncryptionManager> encryption_manager_;
+    std::unique_ptr<BatchOperationManager> batch_operation_manager_;
+    std::unique_ptr<HealthMonitor> health_monitor_;
+    std::unique_ptr<PerformanceProfiler> performance_profiler_;
     
     bool initialized_;
     std::string base_path_;
@@ -61,6 +69,10 @@ public:
     USBDeviceDriver* GetUSBDriver() { return usb_driver_.get(); }
     StorageAnalyticsDashboard* GetAnalyticsDashboard() { return analytics_dashboard_.get(); }
     CloudStorageIntegration* GetCloudIntegration() { return cloud_integration_.get(); }
+    EncryptionManager* GetEncryptionManager() { return encryption_manager_.get(); }
+    BatchOperationManager* GetBatchOperationManager() { return batch_operation_manager_.get(); }
+    HealthMonitor* GetHealthMonitor() { return health_monitor_.get(); }
+    PerformanceProfiler* GetPerformanceProfiler() { return performance_profiler_.get(); }
 };
 
 } // namespace StorageOpt
