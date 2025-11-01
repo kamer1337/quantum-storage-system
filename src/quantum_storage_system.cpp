@@ -16,6 +16,8 @@ QuantumStorageSystem::QuantumStorageSystem()
     usb_driver_ = std::make_unique<USBDeviceDriver>();
     analytics_dashboard_ = std::make_unique<StorageAnalyticsDashboard>();
     cloud_integration_ = std::make_unique<CloudStorageIntegration>();
+    encryption_manager_ = std::make_unique<EncryptionManager>();
+    batch_operation_manager_ = std::make_unique<BatchOperationManager>(this);
 }
 
 QuantumStorageSystem::~QuantumStorageSystem() {
@@ -68,6 +70,18 @@ bool QuantumStorageSystem::Initialize(const std::string& base_path, size_t physi
         std::cout << "\n6. Initializing Cloud Storage Integration..." << std::endl;
         if (!cloud_integration_->Initialize()) {
             std::cerr << "Failed to initialize Cloud Storage Integration" << std::endl;
+            return false;
+        }
+        
+        std::cout << "\n7. Initializing Encryption Manager..." << std::endl;
+        if (!encryption_manager_->Initialize()) {
+            std::cerr << "Failed to initialize Encryption Manager" << std::endl;
+            return false;
+        }
+        
+        std::cout << "\n8. Initializing Batch Operation Manager..." << std::endl;
+        if (!batch_operation_manager_->Initialize()) {
+            std::cerr << "Failed to initialize Batch Operation Manager" << std::endl;
             return false;
         }
         

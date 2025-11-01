@@ -22,6 +22,8 @@ set(CORE_SOURCES
     src/core/virtual_storage_manager.cpp
     src/core/advanced_compression_system.cpp
     src/core/usb_device_driver.cpp
+    src/core/encryption_manager.cpp
+    src/core/batch_operation_manager.cpp
 )
 
 set(ANALYTICS_SOURCES

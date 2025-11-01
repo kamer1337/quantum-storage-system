@@ -4,6 +4,8 @@
 #include "core/virtual_storage_manager.h"
 #include "core/advanced_compression_system.h"
 #include "core/usb_device_driver.h"
+#include "core/encryption_manager.h"
+#include "core/batch_operation_manager.h"
 #include "analytics/storage_analytics_dashboard.h"
 #include "cloud/cloud_storage_integration.h"
 
@@ -21,6 +23,8 @@ private:
     std::unique_ptr<USBDeviceDriver> usb_driver_;
     std::unique_ptr<StorageAnalyticsDashboard> analytics_dashboard_;
     std::unique_ptr<CloudStorageIntegration> cloud_integration_;
+    std::unique_ptr<EncryptionManager> encryption_manager_;
+    std::unique_ptr<BatchOperationManager> batch_operation_manager_;
     
     bool initialized_;
     std::string base_path_;
@@ -61,6 +65,8 @@ public:
     USBDeviceDriver* GetUSBDriver() { return usb_driver_.get(); }
     StorageAnalyticsDashboard* GetAnalyticsDashboard() { return analytics_dashboard_.get(); }
     CloudStorageIntegration* GetCloudIntegration() { return cloud_integration_.get(); }
+    EncryptionManager* GetEncryptionManager() { return encryption_manager_.get(); }
+    BatchOperationManager* GetBatchOperationManager() { return batch_operation_manager_.get(); }
 };
 
 } // namespace StorageOpt
