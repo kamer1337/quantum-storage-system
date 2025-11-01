@@ -19,6 +19,7 @@ QuantumStorageSystem::QuantumStorageSystem()
     encryption_manager_ = std::make_unique<EncryptionManager>();
     batch_operation_manager_ = std::make_unique<BatchOperationManager>(this);
     health_monitor_ = std::make_unique<HealthMonitor>(this);
+    performance_profiler_ = std::make_unique<PerformanceProfiler>(this);
 }
 
 QuantumStorageSystem::~QuantumStorageSystem() {
@@ -91,6 +92,10 @@ bool QuantumStorageSystem::Initialize(const std::string& base_path, size_t physi
             std::cerr << "Failed to initialize Health Monitor" << std::endl;
             return false;
         }
+        
+        std::cout << "\n10. Initializing Performance Profiler..." << std::endl;
+        // Performance profiler doesn't need initialization, just enable it
+        performance_profiler_->EnableProfiling();
         
         initialized_ = true;
         

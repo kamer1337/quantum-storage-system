@@ -25,6 +25,7 @@ set(CORE_SOURCES
     src/core/encryption_manager.cpp
     src/core/batch_operation_manager.cpp
     src/core/health_monitor.cpp
+    src/core/performance_profiler.cpp
 )
 
 set(ANALYTICS_SOURCES

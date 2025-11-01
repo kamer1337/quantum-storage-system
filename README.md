@@ -337,6 +337,69 @@ health->SetThreshold("cpu_usage", 80.0, 95.0);  // Warning at 80%, critical at 9
 health->SetThreshold("memory_usage", 85.0, 97.0);
 ```
 
+### Performance Profiling Examples
+
+```cpp
+#include "core/performance_profiler.h"
+
+// Get performance profiler from system
+auto* profiler = system.GetPerformanceProfiler();
+
+// Enable profiling
+profiler->EnableProfiling();
+
+// Use scoped profiling for automatic timing
+{
+    StorageOpt::PerformanceProfiler::ScopedProfile profile(profiler, "MyOperation", 1024);
+    // Your code here - timing is automatic
+    system.CreateFile("test.dat", 1024);
+}
+
+// Manual operation recording
+profiler->RecordOperation("custom_op", 45.5, 2048);  // 45.5ms, 2048 bytes
+
+// Run benchmarks
+auto file_create_result = profiler->BenchmarkFileCreation(100, 1024 * 1024);  // 100 files, 1MB each
+std::cout << "File Creation Benchmark:\n";
+std::cout << "  Operations/sec: " << file_create_result.operations_per_second << "\n";
+std::cout << "  Throughput: " << file_create_result.throughput_mbps << " MB/s\n";
+
+// Benchmark file writes
+auto write_result = profiler->BenchmarkFileWrite(50, 4096);  // 50 writes, 4KB each
+std::cout << "Write performance: " << write_result.throughput_mbps << " MB/s\n";
+
+// Benchmark compression
+std::vector<uint8_t> test_data(1024 * 1024, 0x42);  // 1MB test data
+auto compress_result = profiler->BenchmarkCompression(test_data);
+std::cout << "Compression ratio: " << compress_result.custom_metrics["compression_ratio"] << "x\n";
+
+// Benchmark encryption
+auto encrypt_result = profiler->BenchmarkEncryption(test_data);
+std::cout << "Encryption throughput: " << encrypt_result.throughput_mbps << " MB/s\n";
+
+// Custom benchmark
+auto custom_result = profiler->RunCustomBenchmark("My Custom Test", []() {
+    // Your custom benchmark code
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}, 100);  // Run 100 iterations
+
+// Get all performance metrics
+auto metrics = profiler->GetAllMetrics();
+for (const auto& metric : metrics) {
+    std::cout << metric.operation_name << ": "
+              << metric.avg_time_ms << " ms avg, "
+              << metric.call_count << " calls\n";
+}
+
+// Generate reports
+std::cout << profiler->GeneratePerformanceReport();
+std::cout << profiler->GenerateBenchmarkReport();
+
+// Export to CSV for analysis
+profiler->ExportMetricsToCSV("performance_metrics.csv");
+profiler->ExportBenchmarksToCSV("benchmark_results.csv");
+```
+
 ## 🎯 How It Works
 
 ### 1. Quantum Space Multiplication

@@ -284,9 +284,9 @@ void HealthMonitor::CheckSpaceMultiplier() {
 
 void HealthMonitor::CheckCacheHitRatio() {
     if (storage_system_ && storage_system_->GetVirtualManager()) {
-        // Use a default value as the method is not yet implemented
-        double ratio = 0.75; // Placeholder: assume 75% hit ratio
-        UpdateMetric("cache_hit_ratio", ratio * 100.0);
+        // Placeholder cache hit ratio - in production this would query actual cache stats
+        constexpr double DEFAULT_CACHE_HIT_RATIO = 0.75; // 75% hit ratio placeholder
+        UpdateMetric("cache_hit_ratio", DEFAULT_CACHE_HIT_RATIO * 100.0);
     }
 }
 
@@ -383,9 +383,15 @@ double HealthMonitor::GetMemoryUsage() {
         
         while (std::getline(proc_meminfo, line)) {
             if (line.find("MemTotal:") == 0) {
-                sscanf(line.c_str(), "MemTotal: %llu", &total);
+                // Safe parsing with error checking
+                if (std::sscanf(line.c_str(), "MemTotal: %llu", &total) != 1) {
+                    total = 0;
+                }
             } else if (line.find("MemAvailable:") == 0) {
-                sscanf(line.c_str(), "MemAvailable: %llu", &available);
+                // Safe parsing with error checking
+                if (std::sscanf(line.c_str(), "MemAvailable: %llu", &available) != 1) {
+                    available = 0;
+                }
             }
         }
         proc_meminfo.close();

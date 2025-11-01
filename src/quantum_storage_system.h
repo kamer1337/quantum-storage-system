@@ -7,6 +7,7 @@
 #include "core/encryption_manager.h"
 #include "core/batch_operation_manager.h"
 #include "core/health_monitor.h"
+#include "core/performance_profiler.h"
 #include "analytics/storage_analytics_dashboard.h"
 #include "cloud/cloud_storage_integration.h"
 
@@ -27,6 +28,7 @@ private:
     std::unique_ptr<EncryptionManager> encryption_manager_;
     std::unique_ptr<BatchOperationManager> batch_operation_manager_;
     std::unique_ptr<HealthMonitor> health_monitor_;
+    std::unique_ptr<PerformanceProfiler> performance_profiler_;
     
     bool initialized_;
     std::string base_path_;
@@ -70,6 +72,7 @@ public:
     EncryptionManager* GetEncryptionManager() { return encryption_manager_.get(); }
     BatchOperationManager* GetBatchOperationManager() { return batch_operation_manager_.get(); }
     HealthMonitor* GetHealthMonitor() { return health_monitor_.get(); }
+    PerformanceProfiler* GetPerformanceProfiler() { return performance_profiler_.get(); }
 };
 
 } // namespace StorageOpt

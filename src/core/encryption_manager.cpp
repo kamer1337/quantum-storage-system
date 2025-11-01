@@ -200,17 +200,25 @@ bool EncryptionManager::IsFileEncrypted(const std::string& file_path) {
     std::ifstream file(file_path, std::ios::binary);
     if (!file) return false;
     
-    // Read first 16 bytes as a simple check
+    // Read first 16 bytes to check for encryption markers
     std::vector<uint8_t> header(16, 0);
     file.read(reinterpret_cast<char*>(header.data()), 16);
     
-    // Simple heuristic: encrypted data has high entropy
-    return true; // Placeholder
+    // Simple heuristic: check if file has high entropy (typical of encrypted data)
+    // In production, would check for specific encryption headers/magic numbers
+    // For now, return false as placeholder since we don't have proper detection
+    return false; // Placeholder - would need proper encryption header detection
 }
 
 EncryptionAlgorithm EncryptionManager::DetectEncryptionAlgorithm(const std::vector<uint8_t>& data) {
-    // This would typically look at headers or metadata
-    return EncryptionAlgorithm::AES_256; // Placeholder
+    // In production, this would analyze file headers or metadata to detect the algorithm
+    // For now, return NONE since we can't reliably detect without proper headers
+    if (data.empty()) {
+        return EncryptionAlgorithm::NONE;
+    }
+    
+    // Placeholder - in production would check encryption headers/magic bytes
+    return EncryptionAlgorithm::NONE; // Unknown/unable to detect
 }
 
 std::vector<std::string> EncryptionManager::GetAvailableKeys() {
