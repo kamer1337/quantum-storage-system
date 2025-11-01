@@ -18,6 +18,7 @@ QuantumStorageSystem::QuantumStorageSystem()
     cloud_integration_ = std::make_unique<CloudStorageIntegration>();
     encryption_manager_ = std::make_unique<EncryptionManager>();
     batch_operation_manager_ = std::make_unique<BatchOperationManager>(this);
+    health_monitor_ = std::make_unique<HealthMonitor>(this);
 }
 
 QuantumStorageSystem::~QuantumStorageSystem() {
@@ -82,6 +83,12 @@ bool QuantumStorageSystem::Initialize(const std::string& base_path, size_t physi
         std::cout << "\n8. Initializing Batch Operation Manager..." << std::endl;
         if (!batch_operation_manager_->Initialize()) {
             std::cerr << "Failed to initialize Batch Operation Manager" << std::endl;
+            return false;
+        }
+        
+        std::cout << "\n9. Initializing Health Monitor..." << std::endl;
+        if (!health_monitor_->Initialize()) {
+            std::cerr << "Failed to initialize Health Monitor" << std::endl;
             return false;
         }
         

@@ -6,6 +6,7 @@
 #include "core/usb_device_driver.h"
 #include "core/encryption_manager.h"
 #include "core/batch_operation_manager.h"
+#include "core/health_monitor.h"
 #include "analytics/storage_analytics_dashboard.h"
 #include "cloud/cloud_storage_integration.h"
 
@@ -25,6 +26,7 @@ private:
     std::unique_ptr<CloudStorageIntegration> cloud_integration_;
     std::unique_ptr<EncryptionManager> encryption_manager_;
     std::unique_ptr<BatchOperationManager> batch_operation_manager_;
+    std::unique_ptr<HealthMonitor> health_monitor_;
     
     bool initialized_;
     std::string base_path_;
@@ -67,6 +69,7 @@ public:
     CloudStorageIntegration* GetCloudIntegration() { return cloud_integration_.get(); }
     EncryptionManager* GetEncryptionManager() { return encryption_manager_.get(); }
     BatchOperationManager* GetBatchOperationManager() { return batch_operation_manager_.get(); }
+    HealthMonitor* GetHealthMonitor() { return health_monitor_.get(); }
 };
 
 } // namespace StorageOpt
