@@ -459,10 +459,10 @@ Seamless multi-cloud storage expansion:
 **Note**: The GUI system has been replaced with an independent, lightweight 3D/5D renderer that provides all the same functionality without external dependencies on ImGui.
 
 **Current Limitations**: The independent GUI is a functional architecture demonstration with the following limitations:
-- Text rendering is not fully implemented (positions are calculated but glyphs are not displayed)
+- Text rendering uses a basic 8x13 bitmap font (for enhanced typography, consider FreeType or stb_truetype)
 - Uses legacy OpenGL immediate mode APIs (works but deprecated in OpenGL 3.3+ core profile)
 - Input controls (text fields, sliders) display correctly but keyboard/mouse interaction needs full implementation
-- For production use, consider adding proper text rendering (FreeType, stb_truetype) and migrating to modern OpenGL with VBOs/VAOs
+- For production use, consider adding advanced text rendering and migrating to modern OpenGL with VBOs/VAOs
 
 ### Quantum Algorithms
 - **Quantum Deduplication**: Identify similar content across quantum state space

@@ -5,14 +5,15 @@
 // This is a lightweight, independent GUI system created as a replacement for ImGui.
 // It provides the basic architecture and API for GUI rendering using OpenGL and GLFW.
 //
-// Current Status: Functional Architecture Demonstration
+// Current Status: Functional Architecture with Basic Text Rendering
 // - Provides GUI layout and windowing system
 // - Supports buttons, text, input fields, sliders, progress bars, and menus
 // - Uses immediate mode rendering with OpenGL
+// - Includes built-in 8x13 bitmap font for text rendering (ASCII 32-126)
 // 
 // Known Limitations (for production use):
-// 1. Text rendering: Positions are calculated but glyphs are not displayed
-//    - Solution: Integrate FreeType, stb_truetype, or bitmap fonts
+// 1. Text rendering: Uses basic 8x13 bitmap font
+//    - For enhanced typography: Integrate FreeType, stb_truetype, or texture atlases
 // 2. Legacy OpenGL: Uses immediate mode (glBegin/glEnd)
 //    - Solution: Migrate to VBOs, VAOs, and modern shaders
 // 3. Input handling: Visual display works but keyboard/mouse interaction is minimal
