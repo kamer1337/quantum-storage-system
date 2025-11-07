@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
             std::cout << "Quantum Storage System - Usage:\n";
             std::cout << "  " << argv[0] << " [options]\n\n";
             std::cout << "Options:\n";
-            std::cout << "  --gui, -g      Launch with ImGui interface (default)\n";
+            std::cout << "  --gui, -g      Launch with Independent GUI interface (default)\n";
             std::cout << "  --console, -c  Launch with console interface\n";
             std::cout << "  --help, -h     Show this help message\n";
             return 0;
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 #ifdef USE_IMGUI
     // Try to launch GUI if requested
     if (use_gui) {
-        std::cout << "\nLaunching ImGui interface..." << std::endl;
+        std::cout << "\nLaunching Independent GUI interface..." << std::endl;
         
         ImGuiGUI gui(&system);
         if (gui.Initialize()) {
@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
     }
 #else
     if (use_gui) {
-        std::cout << "\nGUI mode requested but ImGui support is not compiled in." << std::endl;
+        std::cout << "\nGUI mode requested but GUI support is not compiled in." << std::endl;
         std::cout << "Falling back to console mode..." << std::endl;
         use_console = true;
     }

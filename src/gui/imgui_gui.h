@@ -5,12 +5,17 @@
 
 struct GLFWwindow;
 
+namespace IndependentGUI {
+    class Context;
+}
+
 namespace StorageOpt {
 
 class ImGuiGUI {
 private:
     GLFWwindow* window_;
     QuantumStorageSystem* system_;
+    std::unique_ptr<IndependentGUI::Context> gui_context_;
     bool show_demo_window_;
     bool show_status_window_;
     bool show_analytics_window_;
@@ -24,9 +29,9 @@ private:
     std::string selected_file_;
     std::string status_message_;
     
-    // Initialize GLFW and ImGui
+    // Initialize GLFW and Independent GUI
     bool InitializeWindow();
-    void InitializeImGui();
+    void InitializeGUI();
     void Shutdown();
     
     // Render functions

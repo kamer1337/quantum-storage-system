@@ -1,7 +1,5 @@
 #include "imgui_gui.h"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "independent_gui.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <sstream>
@@ -16,6 +14,7 @@ static void glfw_error_callback(int error, const char* description) {
 ImGuiGUI::ImGuiGUI(QuantumStorageSystem* system)
     : window_(nullptr)
     , system_(system)
+    , gui_context_(std::make_unique<IndependentGUI::Context>())
     , show_demo_window_(false)
     , show_status_window_(true)
     , show_analytics_window_(true)
@@ -44,7 +43,6 @@ bool ImGuiGUI::InitializeWindow() {
     }
     
     // GL 3.3 + GLSL 330
-    const char* glsl_version = "#version 330";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -54,7 +52,7 @@ bool ImGuiGUI::InitializeWindow() {
 #endif
     
     // Create window
-    window_ = glfwCreateWindow(1600, 900, "Quantum Storage System - ImGui Interface", nullptr, nullptr);
+    window_ = glfwCreateWindow(1600, 900, "Quantum Storage System - Independent GUI Interface", nullptr, nullptr);
     if (!window_) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -64,32 +62,24 @@ bool ImGuiGUI::InitializeWindow() {
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(1); // Enable vsync
     
-    // Setup ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    
-    // Setup ImGui style
-    ImGui::StyleColorsDark();
-    
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window_, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
+    // Initialize Independent GUI
+    if (!gui_context_->Initialize(window_)) {
+        std::cerr << "Failed to initialize Independent GUI" << std::endl;
+        glfwDestroyWindow(window_);
+        glfwTerminate();
+        return false;
+    }
     
     return true;
 }
 
-void ImGuiGUI::InitializeImGui() {
+void ImGuiGUI::InitializeGUI() {
     // Already initialized in InitializeWindow
 }
 
 void ImGuiGUI::Shutdown() {
     if (window_) {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
-        
+        gui_context_->Shutdown();
         glfwDestroyWindow(window_);
         glfwTerminate();
         window_ = nullptr;
@@ -101,45 +91,44 @@ bool ImGuiGUI::ShouldClose() {
 }
 
 void ImGuiGUI::RenderMainMenuBar() {
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Exit", "Alt+F4")) {
+    if (gui_context_->BeginMainMenuBar()) {
+        if (gui_context_->BeginMenu("File")) {
+            if (gui_context_->MenuItem("Exit", "Alt+F4")) {
                 glfwSetWindowShouldClose(window_, true);
             }
-            ImGui::EndMenu();
+            gui_context_->EndMenu();
         }
         
-        if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Status", nullptr, &show_status_window_);
-            ImGui::MenuItem("Analytics", nullptr, &show_analytics_window_);
-            ImGui::MenuItem("File Operations", nullptr, &show_file_ops_window_);
-            ImGui::MenuItem("Quantum Visualization", nullptr, &show_quantum_viz_window_);
-            ImGui::Separator();
-            ImGui::MenuItem("ImGui Demo", nullptr, &show_demo_window_);
-            ImGui::EndMenu();
+        if (gui_context_->BeginMenu("View")) {
+            gui_context_->MenuItem("Status", nullptr, &show_status_window_);
+            gui_context_->MenuItem("Analytics", nullptr, &show_analytics_window_);
+            gui_context_->MenuItem("File Operations", nullptr, &show_file_ops_window_);
+            gui_context_->MenuItem("Quantum Visualization", nullptr, &show_quantum_viz_window_);
+            gui_context_->MenuItem("GUI Demo", nullptr, &show_demo_window_);
+            gui_context_->EndMenu();
         }
         
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("About")) {
+        if (gui_context_->BeginMenu("Help")) {
+            if (gui_context_->MenuItem("About")) {
                 status_message_ = "Quantum Storage System v1.0.0 - Advanced ML-Powered Storage";
             }
-            ImGui::EndMenu();
+            gui_context_->EndMenu();
         }
         
-        ImGui::EndMainMenuBar();
+        gui_context_->EndMainMenuBar();
     }
 }
 
 void ImGuiGUI::RenderStatusWindow() {
     if (!show_status_window_) return;
     
-    ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("System Status", &show_status_window_)) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "QUANTUM STORAGE SYSTEM");
-        ImGui::Separator();
+    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(500, 300), IndependentGUI::FirstUseEver);
+    if (gui_context_->BeginWindow("System Status", &show_status_window_)) {
+        gui_context_->TextColored(IndependentGUI::Color(0.0f, 1.0f, 0.0f, 1.0f), "QUANTUM STORAGE SYSTEM");
+        gui_context_->Separator();
         
         // Space information
-        ImGui::Text("Storage Information:");
+        gui_context_->Text("Storage Information:");
         
         size_t virtual_total = system_->GetVirtualSpaceTotal();
         size_t virtual_used = system_->GetVirtualSpaceUsed();
@@ -147,99 +136,105 @@ void ImGuiGUI::RenderStatusWindow() {
         double multiplier = system_->GetSpaceMultiplier();
         double efficiency = system_->GetStorageEfficiency();
         
-        ImGui::Text("Virtual Total: %.2f GB", virtual_total / (1024.0 * 1024.0 * 1024.0));
-        ImGui::Text("Virtual Used:  %.2f GB", virtual_used / (1024.0 * 1024.0 * 1024.0));
-        ImGui::Text("Physical Used: %.2f MB", physical_used / (1024.0 * 1024.0));
+        char text[256];
+        snprintf(text, sizeof(text), "Virtual Total: %.2f GB", virtual_total / (1024.0 * 1024.0 * 1024.0));
+        gui_context_->Text(text);
+        snprintf(text, sizeof(text), "Virtual Used:  %.2f GB", virtual_used / (1024.0 * 1024.0 * 1024.0));
+        gui_context_->Text(text);
+        snprintf(text, sizeof(text), "Physical Used: %.2f MB", physical_used / (1024.0 * 1024.0));
+        gui_context_->Text(text);
         
-        ImGui::Separator();
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Quantum Multiplier: %.2fx", multiplier);
+        gui_context_->Separator();
+        snprintf(text, sizeof(text), "Quantum Multiplier: %.2fx", multiplier);
+        gui_context_->TextColored(IndependentGUI::Color(1.0f, 1.0f, 0.0f, 1.0f), text);
         
         // Progress bar for virtual space usage
         float virtual_usage = virtual_total > 0 ? (float)virtual_used / virtual_total : 0.0f;
-        ImGui::ProgressBar(virtual_usage, ImVec2(-1.0f, 0.0f), 
-                          (std::to_string((int)(virtual_usage * 100)) + "%").c_str());
+        snprintf(text, sizeof(text), "%d%%", (int)(virtual_usage * 100));
+        gui_context_->ProgressBar(virtual_usage, IndependentGUI::Vec2(-1.0f, 0.0f), text);
         
-        ImGui::Separator();
-        ImGui::Text("Storage Efficiency: %.1f%%", efficiency * 100.0);
+        gui_context_->Separator();
+        snprintf(text, sizeof(text), "Storage Efficiency: %.1f%%", efficiency * 100.0);
+        gui_context_->Text(text);
         
         // Health status
         bool is_healthy = system_->IsHealthy();
-        ImGui::Text("System Health: ");
-        ImGui::SameLine();
+        gui_context_->Text("System Health: ");
+        gui_context_->SameLine();
         if (is_healthy) {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "HEALTHY");
+            gui_context_->TextColored(IndependentGUI::Color(0.0f, 1.0f, 0.0f, 1.0f), "HEALTHY");
         } else {
-            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "DEGRADED");
+            gui_context_->TextColored(IndependentGUI::Color(1.0f, 0.0f, 0.0f, 1.0f), "DEGRADED");
         }
         
         // Active optimizations
-        ImGui::Separator();
-        ImGui::Text("Active Optimizations:");
+        gui_context_->Separator();
+        gui_context_->Text("Active Optimizations:");
         auto optimizations = system_->GetActiveOptimizations();
         for (size_t i = 0; i < std::min(optimizations.size(), size_t(5)); ++i) {
-            ImGui::BulletText("%s", optimizations[i].c_str());
+            gui_context_->BulletText(optimizations[i].c_str());
         }
         
         if (!status_message_.empty()) {
-            ImGui::Separator();
-            ImGui::TextWrapped("%s", status_message_.c_str());
+            gui_context_->Separator();
+            gui_context_->TextWrapped(status_message_.c_str());
         }
     }
-    ImGui::End();
+    gui_context_->EndWindow();
 }
 
 void ImGuiGUI::RenderAnalyticsWindow() {
     if (!show_analytics_window_) return;
     
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Storage Analytics Dashboard", &show_analytics_window_)) {
+    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(600, 400), IndependentGUI::FirstUseEver);
+    if (gui_context_->BeginWindow("Storage Analytics Dashboard", &show_analytics_window_)) {
         auto* analytics = system_->GetAnalyticsDashboard();
         if (analytics) {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Real-Time Analytics");
-            ImGui::Separator();
+            gui_context_->TextColored(IndependentGUI::Color(0.0f, 1.0f, 1.0f, 1.0f), "Real-Time Analytics");
+            gui_context_->Separator();
             
             // Get text report
             std::string report = analytics->GenerateTextReport("summary");
             
             // Parse and display report sections
-            ImGui::BeginChild("AnalyticsContent", ImVec2(0, -30), true);
+            gui_context_->BeginChild("AnalyticsContent", IndependentGUI::Vec2(0, -30), true);
             
             std::istringstream iss(report);
             std::string line;
             while (std::getline(iss, line)) {
                 if (line.find("===") != std::string::npos) {
-                    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", line.c_str());
+                    gui_context_->TextColored(IndependentGUI::Color(1.0f, 1.0f, 0.0f, 1.0f), line.c_str());
                 } else if (!line.empty()) {
-                    ImGui::Text("%s", line.c_str());
+                    gui_context_->Text(line.c_str());
                 }
             }
             
-            ImGui::EndChild();
+            gui_context_->EndChild();
             
-            if (ImGui::Button("Refresh Analytics")) {
+            if (gui_context_->Button("Refresh Analytics")) {
                 status_message_ = "Analytics refreshed!";
             }
         } else {
-            ImGui::Text("Analytics dashboard not available");
+            gui_context_->Text("Analytics dashboard not available");
         }
     }
-    ImGui::End();
+    gui_context_->EndWindow();
 }
 
 void ImGuiGUI::RenderFileOpsWindow() {
     if (!show_file_ops_window_) return;
     
-    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("File Operations", &show_file_ops_window_)) {
-        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Virtual File Management");
-        ImGui::Separator();
+    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(500, 400), IndependentGUI::FirstUseEver);
+    if (gui_context_->BeginWindow("File Operations", &show_file_ops_window_)) {
+        gui_context_->TextColored(IndependentGUI::Color(1.0f, 0.5f, 0.0f, 1.0f), "Virtual File Management");
+        gui_context_->Separator();
         
         // Create file section
-        if (ImGui::CollapsingHeader("Create Virtual File", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::InputText("Filename", filename_buffer_, sizeof(filename_buffer_));
-            ImGui::SliderInt("Size (MB)", &file_size_mb_, 1, 1000);
+        if (gui_context_->CollapsingHeader("Create Virtual File", true)) {
+            gui_context_->InputText("Filename", filename_buffer_, sizeof(filename_buffer_));
+            gui_context_->SliderInt("Size (MB)", &file_size_mb_, 1, 1000);
             
-            if (ImGui::Button("Create File")) {
+            if (gui_context_->Button("Create File")) {
                 if (strlen(filename_buffer_) > 0) {
                     size_t virtual_size = static_cast<size_t>(file_size_mb_) * 1024 * 1024;
                     if (system_->CreateFile(filename_buffer_, virtual_size)) {
@@ -252,12 +247,12 @@ void ImGuiGUI::RenderFileOpsWindow() {
         }
         
         // Write data section
-        if (ImGui::CollapsingHeader("Write Data to File")) {
-            ImGui::InputText("Target File", filename_buffer_, sizeof(filename_buffer_));
-            ImGui::InputTextMultiline("Data", write_data_buffer_, sizeof(write_data_buffer_), 
-                                     ImVec2(-1.0f, ImGui::GetTextLineHeight() * 8));
+        if (gui_context_->CollapsingHeader("Write Data to File")) {
+            gui_context_->InputText("Target File", filename_buffer_, sizeof(filename_buffer_));
+            gui_context_->InputTextMultiline("Data", write_data_buffer_, sizeof(write_data_buffer_), 
+                                     IndependentGUI::Vec2(-1.0f, 128.0f));
             
-            if (ImGui::Button("Write Data")) {
+            if (gui_context_->Button("Write Data")) {
                 if (strlen(filename_buffer_) > 0 && strlen(write_data_buffer_) > 0) {
                     if (system_->WriteFile(filename_buffer_, write_data_buffer_, strlen(write_data_buffer_))) {
                         status_message_ = "Data written to '" + std::string(filename_buffer_) + "' successfully!";
@@ -269,10 +264,10 @@ void ImGuiGUI::RenderFileOpsWindow() {
         }
         
         // Read file section
-        if (ImGui::CollapsingHeader("Read File Data")) {
-            ImGui::InputText("File to Read", filename_buffer_, sizeof(filename_buffer_));
+        if (gui_context_->CollapsingHeader("Read File Data")) {
+            gui_context_->InputText("File to Read", filename_buffer_, sizeof(filename_buffer_));
             
-            if (ImGui::Button("Read File")) {
+            if (gui_context_->Button("Read File")) {
                 if (strlen(filename_buffer_) > 0) {
                     std::vector<char> buffer(1024 * 1024); // 1MB buffer
                     size_t size = buffer.size();
@@ -289,10 +284,10 @@ void ImGuiGUI::RenderFileOpsWindow() {
         }
         
         // Delete file section
-        if (ImGui::CollapsingHeader("Delete File")) {
-            ImGui::InputText("File to Delete", filename_buffer_, sizeof(filename_buffer_));
+        if (gui_context_->CollapsingHeader("Delete File")) {
+            gui_context_->InputText("File to Delete", filename_buffer_, sizeof(filename_buffer_));
             
-            if (ImGui::Button("Delete File")) {
+            if (gui_context_->Button("Delete File")) {
                 if (strlen(filename_buffer_) > 0) {
                     if (system_->DeleteFile(filename_buffer_)) {
                         status_message_ = "File '" + std::string(filename_buffer_) + "' deleted successfully!";
@@ -303,62 +298,67 @@ void ImGuiGUI::RenderFileOpsWindow() {
             }
         }
     }
-    ImGui::End();
+    gui_context_->EndWindow();
 }
 
 void ImGuiGUI::RenderQuantumVisualization() {
     if (!show_quantum_viz_window_) return;
     
-    ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Quantum Multiplication Visualization", &show_quantum_viz_window_)) {
-        ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "Quantum Space Multiplication");
-        ImGui::Separator();
+    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(500, 300), IndependentGUI::FirstUseEver);
+    if (gui_context_->BeginWindow("Quantum Multiplication Visualization", &show_quantum_viz_window_)) {
+        gui_context_->TextColored(IndependentGUI::Color(0.5f, 0.5f, 1.0f, 1.0f), "Quantum Space Multiplication");
+        gui_context_->Separator();
         
         double multiplier = system_->GetSpaceMultiplier();
         size_t virtual_total = system_->GetVirtualSpaceTotal();
         
-        ImGui::Text("Physical Storage Limit: 5 GB");
-        ImGui::Text("Virtual Storage Available: %.2f GB", virtual_total / (1024.0 * 1024.0 * 1024.0));
+        gui_context_->Text("Physical Storage Limit: 5 GB");
         
-        ImGui::Spacing();
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), 
-                          "Quantum Multiplier Effect: %.2fx", multiplier);
+        char text[256];
+        snprintf(text, sizeof(text), "Virtual Storage Available: %.2f GB", virtual_total / (1024.0 * 1024.0 * 1024.0));
+        gui_context_->Text(text);
+        
+        gui_context_->Spacing();
+        snprintf(text, sizeof(text), "Quantum Multiplier Effect: %.2fx", multiplier);
+        gui_context_->TextColored(IndependentGUI::Color(1.0f, 0.0f, 1.0f, 1.0f), text);
         
         // Visual representation
-        ImGui::Spacing();
-        ImGui::Text("Physical Space:");
-        ImGui::ProgressBar(1.0f, ImVec2(-1.0f, 0.0f), "5 GB");
+        gui_context_->Spacing();
+        gui_context_->Text("Physical Space:");
+        gui_context_->ProgressBar(1.0f, IndependentGUI::Vec2(-1.0f, 0.0f), "5 GB");
         
-        ImGui::Text("Virtual Space (Quantum Multiplied):");
+        gui_context_->Text("Virtual Space (Quantum Multiplied):");
         float visual_mult = std::min(static_cast<float>(multiplier / 10.0), 1.0f); // Scale for visualization
-        ImGui::ProgressBar(visual_mult, ImVec2(-1.0f, 0.0f), 
-                          (std::to_string((int)(multiplier)) + "x Multiplied").c_str());
+        snprintf(text, sizeof(text), "%dx Multiplied", (int)multiplier);
+        gui_context_->ProgressBar(visual_mult, IndependentGUI::Vec2(-1.0f, 0.0f), text);
         
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Text("Quantum Features Active:");
-        ImGui::BulletText("Quantum Superposition Compression");
-        ImGui::BulletText("ML-Optimized Storage Allocation");
-        ImGui::BulletText("Entanglement-Based Deduplication");
-        ImGui::BulletText("Coherence-Maintained State Management");
+        gui_context_->Spacing();
+        gui_context_->Separator();
+        gui_context_->Text("Quantum Features Active:");
+        gui_context_->BulletText("Quantum Superposition Compression");
+        gui_context_->BulletText("ML-Optimized Storage Allocation");
+        gui_context_->BulletText("Entanglement-Based Deduplication");
+        gui_context_->BulletText("Coherence-Maintained State Management");
         
-        ImGui::Spacing();
-        if (ImGui::Button("Run Quantum Demo")) {
+        gui_context_->Spacing();
+        if (gui_context_->Button("Run Quantum Demo")) {
             status_message_ = "Running quantum multiplication demo...";
             // In a real implementation, you'd call the demo function here
         }
     }
-    ImGui::End();
+    gui_context_->EndWindow();
 }
 
 void ImGuiGUI::Run() {
     while (!ShouldClose()) {
         glfwPollEvents();
         
-        // Start ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        // Start frame
+        gui_context_->NewFrame();
+        
+        // Clear background
+        glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         
         // Render UI
         RenderMainMenuBar();
@@ -368,17 +368,11 @@ void ImGuiGUI::Run() {
         RenderQuantumVisualization();
         
         if (show_demo_window_) {
-            ImGui::ShowDemoWindow(&show_demo_window_);
+            gui_context_->ShowDemoWindow(&show_demo_window_);
         }
         
         // Rendering
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window_, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        gui_context_->Render();
         
         glfwSwapBuffers(window_);
     }
