@@ -1,5 +1,26 @@
 #pragma once
 
+// Independent GUI System
+// =====================
+// This is a lightweight, independent GUI system created as a replacement for ImGui.
+// It provides the basic architecture and API for GUI rendering using OpenGL and GLFW.
+//
+// Current Status: Functional Architecture Demonstration
+// - Provides GUI layout and windowing system
+// - Supports buttons, text, input fields, sliders, progress bars, and menus
+// - Uses immediate mode rendering with OpenGL
+// 
+// Known Limitations (for production use):
+// 1. Text rendering: Positions are calculated but glyphs are not displayed
+//    - Solution: Integrate FreeType, stb_truetype, or bitmap fonts
+// 2. Legacy OpenGL: Uses immediate mode (glBegin/glEnd)
+//    - Solution: Migrate to VBOs, VAOs, and modern shaders
+// 3. Input handling: Visual display works but keyboard/mouse interaction is minimal
+//    - Solution: Implement GLFW input callbacks for full interactivity
+//
+// The system successfully demonstrates independent GUI architecture without
+// external GUI library dependencies (beyond OpenGL/GLFW).
+
 #include <string>
 #include <functional>
 #include <vector>

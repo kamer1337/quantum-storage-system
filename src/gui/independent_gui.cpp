@@ -8,6 +8,12 @@
 namespace IndependentGUI {
 
 // Simple OpenGL immediate mode rendering helpers
+// NOTE: This implementation uses legacy OpenGL immediate mode for simplicity.
+// For production use with OpenGL 3.3+, consider migrating to:
+// - Vertex Buffer Objects (VBOs)
+// - Vertex Array Objects (VAOs)  
+// - Modern shader-based rendering
+// The current implementation works but uses deprecated APIs.
 static void RenderRect(float x, float y, float w, float h, Color color) {
     glColor4f(color.r, color.g, color.b, color.a);
     glBegin(GL_QUADS);
@@ -22,8 +28,11 @@ static void RenderText(float x, float y, const char* text, Color color) {
     // Simple text rendering using GL (limited but functional)
     glColor4f(color.r, color.g, color.b, color.a);
     glRasterPos2f(x, y);
-    // Note: In a real implementation, you'd use a proper text rendering solution
-    // For now, this is a placeholder that shows the concept
+    // NOTE: This is a placeholder text rendering implementation.
+    // In a production system, you would use a proper text rendering solution
+    // such as FreeType, stb_truetype, or bitmap fonts with texture atlases.
+    // For demonstration purposes, text positions are set but glyphs are not rendered.
+    // The GUI layout and interaction logic is functional, only visual text is missing.
 }
 
 // Window state
@@ -369,7 +378,12 @@ bool Context::InputText(const char* label, char* buffer, size_t buffer_size) {
     
     impl_->cursor_pos.y += input_height + impl_->spacing;
     
-    return false; // No actual text input in this simplified version
+    // NOTE: Actual keyboard input handling not implemented in this simplified version.
+    // For full functionality, integrate with GLFW's text input callbacks:
+    // - glfwSetCharCallback for text input
+    // - glfwSetKeyCallback for special keys
+    // - Track focused widget and modify buffer accordingly
+    return false;
 }
 
 bool Context::InputTextMultiline(const char* label, char* buffer, size_t buffer_size, Vec2 size) {
