@@ -62,8 +62,11 @@ target_link_libraries(${PROJECT_NAME} Threads::Threads)
 option(USE_IMGUI "Enable ImGui GUI support" OFF)
 
 if(USE_IMGUI)
-    # Use local ImGui
-    set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/src/third_party/imgui)
+    # Use independent GUI system
+    set(GUI_SOURCES
+        src/gui/independent_gui.cpp
+        src/gui/imgui_gui.cpp
+    )
     
     # Find GLFW
     find_package(glfw3 QUIET)
@@ -81,31 +84,8 @@ if(USE_IMGUI)
     # Find OpenGL
     find_package(OpenGL REQUIRED)
     
-    # Create ImGui library
-    add_library(imgui STATIC
-        ${IMGUI_DIR}/imgui.cpp
-        ${IMGUI_DIR}/imgui_demo.cpp
-        ${IMGUI_DIR}/imgui_draw.cpp
-        ${IMGUI_DIR}/imgui_tables.cpp
-        ${IMGUI_DIR}/imgui_widgets.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-    )
-    
-    target_include_directories(imgui PUBLIC
-        ${IMGUI_DIR}
-        ${IMGUI_DIR}/backends
-    )
-    
-    target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
-    
-    # Add ImGui GUI wrapper source
-    set(GUI_SOURCES
-        src/gui/imgui_gui.cpp
-    )
-    
     target_sources(${PROJECT_NAME} PRIVATE ${GUI_SOURCES})
-    target_link_libraries(${PROJECT_NAME} imgui)
+    target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USE_IMGUI)
 endif()
 
