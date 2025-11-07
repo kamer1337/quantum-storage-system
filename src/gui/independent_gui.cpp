@@ -224,6 +224,9 @@ static void RenderText(float x, float y, const char* text, Color color) {
     glColor4f(color.r, color.g, color.b, color.a);
     glRasterPos2f(x, y);
     
+    // Empty bitmap for unsupported characters (just advances position)
+    static const unsigned char empty_bitmap[13] = {0};
+    
     // Render each character using bitmap font
     for (const char* c = text; *c != '\0'; c++) {
         unsigned char ch = (unsigned char)*c;
@@ -231,10 +234,12 @@ static void RenderText(float x, float y, const char* text, Color color) {
         // Only render printable ASCII characters (32-126)
         if (ch >= 32 && ch <= 126) {
             const unsigned char* bitmap = bitmap_font_8x13[ch - 32];
+            // glBitmap parameters: width=8, height=13, xorig=0, yorig=2, xmove=9, ymove=0
+            // xmove=9 provides 1 pixel spacing between characters
             glBitmap(8, 13, 0, 2, 9, 0, bitmap);
         } else {
             // For unsupported characters, just advance the position
-            glBitmap(0, 0, 0, 0, 9, 0, nullptr);
+            glBitmap(0, 0, 0, 0, 9, 0, empty_bitmap);
         }
     }
 }
