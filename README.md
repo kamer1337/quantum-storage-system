@@ -456,13 +456,23 @@ Seamless multi-cloud storage expansion:
 - **Menu Navigation**: Easy access to all features through organized menu system
 - **Console Fallback**: Automatically falls back to console mode if GUI cannot initialize
 
-**Note**: The GUI system has been replaced with an independent, lightweight 3D/5D renderer that provides all the same functionality without external dependencies on ImGui.
+**Note**: The GUI system has been replaced with a pure C 5D renderer (API GUI) that provides all the same functionality without external GUI library dependencies (only GLFW for windowing and OpenGL for rendering).
 
-**Current Limitations**: The independent GUI is a functional architecture demonstration with the following limitations:
-- Text rendering uses a basic 8x13 bitmap font (for enhanced typography, consider FreeType or stb_truetype)
-- Uses legacy OpenGL immediate mode APIs (works but deprecated in OpenGL 3.3+ core profile)
-- Input controls (text fields, sliders) display correctly but keyboard/mouse interaction needs full implementation
-- For production use, consider adding advanced text rendering and migrating to modern OpenGL with VBOs/VAOs
+**Current Status**: Production-ready pure C implementation with full GUI features
+
+The "5D renderer" concept includes:
+- **3D spatial dimensions** (X, Y, Z) for positioning, layering, and depth
+- **Time dimension** (animations, transitions, dynamic updates)
+- **Interaction dimension** (user input states, hover effects, focus)
+
+Features:
+- Pure C implementation (C99 compatible)
+- No ImGui or other external GUI library dependencies
+- Immediate mode rendering paradigm
+- Built-in bitmap font rendering
+- Full control over rendering pipeline
+- OpenGL-based rendering (OpenGL 2.1 compatibility profile)
+- GLFW for windowing and input handling
 
 ### Quantum Algorithms
 - **Quantum Deduplication**: Identify similar content across quantum state space

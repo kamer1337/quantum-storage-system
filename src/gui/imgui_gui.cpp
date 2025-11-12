@@ -1,5 +1,5 @@
 #include "imgui_gui.h"
-#include "independent_gui.h"
+#include "api_gui.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <sstream>
@@ -15,7 +15,7 @@ static void glfw_error_callback(int error, const char* description) {
 ImGuiGUI::ImGuiGUI(QuantumStorageSystem* system)
     : window_(nullptr)
     , system_(system)
-    , gui_context_(std::make_unique<IndependentGUI::Context>())
+    , gui_context_(nullptr)
     , show_demo_window_(false)
     , show_status_window_(true)
     , show_analytics_window_(true)
@@ -43,17 +43,16 @@ bool ImGuiGUI::InitializeWindow() {
         return false;
     }
     
-    // GL 3.3 + GLSL 330
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Use OpenGL compatibility profile for legacy API
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
     
     // Create window
-    window_ = glfwCreateWindow(1600, 900, "Quantum Storage System - Independent GUI Interface", nullptr, nullptr);
+    window_ = glfwCreateWindow(1600, 900, "Quantum Storage System - Pure C 5D Renderer", nullptr, nullptr);
     if (!window_) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -63,9 +62,10 @@ bool ImGuiGUI::InitializeWindow() {
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(1); // Enable vsync
     
-    // Initialize Independent GUI
-    if (!gui_context_->Initialize(window_)) {
-        std::cerr << "Failed to initialize Independent GUI" << std::endl;
+    // Initialize API GUI
+    gui_context_ = apigui_create_context();
+    if (!gui_context_ || !apigui_initialize(gui_context_, window_)) {
+        std::cerr << "Failed to initialize API GUI" << std::endl;
         glfwDestroyWindow(window_);
         glfwTerminate();
         return false;
@@ -80,7 +80,10 @@ void ImGuiGUI::InitializeGUI() {
 
 void ImGuiGUI::Shutdown() {
     if (window_) {
-        gui_context_->Shutdown();
+        if (gui_context_) {
+            apigui_destroy_context(gui_context_);
+            gui_context_ = nullptr;
+        }
         glfwDestroyWindow(window_);
         glfwTerminate();
         window_ = nullptr;
@@ -92,44 +95,44 @@ bool ImGuiGUI::ShouldClose() {
 }
 
 void ImGuiGUI::RenderMainMenuBar() {
-    if (gui_context_->BeginMainMenuBar()) {
-        if (gui_context_->BeginMenu("File")) {
-            if (gui_context_->MenuItem("Exit", "Alt+F4")) {
+    if (apigui_begin_main_menu_bar(gui_context_)) {
+        if (apigui_begin_menu(gui_context_, "File")) {
+            if (apigui_menu_item(gui_context_, "Exit", "Alt+F4", nullptr)) {
                 glfwSetWindowShouldClose(window_, true);
             }
-            gui_context_->EndMenu();
+            apigui_end_menu(gui_context_);
         }
         
-        if (gui_context_->BeginMenu("View")) {
-            gui_context_->MenuItem("Status", nullptr, &show_status_window_);
-            gui_context_->MenuItem("Analytics", nullptr, &show_analytics_window_);
-            gui_context_->MenuItem("File Operations", nullptr, &show_file_ops_window_);
-            gui_context_->MenuItem("Quantum Visualization", nullptr, &show_quantum_viz_window_);
-            gui_context_->MenuItem("GUI Demo", nullptr, &show_demo_window_);
-            gui_context_->EndMenu();
+        if (apigui_begin_menu(gui_context_, "View")) {
+            apigui_menu_item(gui_context_, "Status", nullptr, &show_status_window_);
+            apigui_menu_item(gui_context_, "Analytics", nullptr, &show_analytics_window_);
+            apigui_menu_item(gui_context_, "File Operations", nullptr, &show_file_ops_window_);
+            apigui_menu_item(gui_context_, "Quantum Visualization", nullptr, &show_quantum_viz_window_);
+            apigui_menu_item(gui_context_, "GUI Demo", nullptr, &show_demo_window_);
+            apigui_end_menu(gui_context_);
         }
         
-        if (gui_context_->BeginMenu("Help")) {
-            if (gui_context_->MenuItem("About")) {
+        if (apigui_begin_menu(gui_context_, "Help")) {
+            if (apigui_menu_item(gui_context_, "About", nullptr, nullptr)) {
                 status_message_ = "Quantum Storage System v1.0.0 - Advanced ML-Powered Storage";
             }
-            gui_context_->EndMenu();
+            apigui_end_menu(gui_context_);
         }
         
-        gui_context_->EndMainMenuBar();
+        apigui_end_main_menu_bar(gui_context_);
     }
 }
 
 void ImGuiGUI::RenderStatusWindow() {
     if (!show_status_window_) return;
     
-    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(500, 300), IndependentGUI::FirstUseEver);
-    if (gui_context_->BeginWindow("System Status", &show_status_window_)) {
-        gui_context_->TextColored(IndependentGUI::Color(0.0f, 1.0f, 0.0f, 1.0f), "QUANTUM STORAGE SYSTEM");
-        gui_context_->Separator();
+    apigui_set_next_window_size(gui_context_, apigui_vec2(500, 300), APIGUI_COND_FIRST_USE_EVER);
+    if (apigui_begin_window(gui_context_, "System Status", &show_status_window_, apigui_vec2(0, 0), apigui_vec2(0, 0))) {
+        apigui_text_colored(gui_context_, apigui_color(0.0f, 1.0f, 0.0f, 1.0f), "QUANTUM STORAGE SYSTEM");
+        apigui_separator(gui_context_);
         
         // Space information
-        gui_context_->Text("Storage Information:");
+        apigui_text(gui_context_, "Storage Information:");
         
         size_t virtual_total = system_->GetVirtualSpaceTotal();
         size_t virtual_used = system_->GetVirtualSpaceUsed();
@@ -139,103 +142,103 @@ void ImGuiGUI::RenderStatusWindow() {
         
         char text[256];
         snprintf(text, sizeof(text), "Virtual Total: %.2f GB", virtual_total / (1024.0 * 1024.0 * 1024.0));
-        gui_context_->Text(text);
+        apigui_text(gui_context_, text);
         snprintf(text, sizeof(text), "Virtual Used:  %.2f GB", virtual_used / (1024.0 * 1024.0 * 1024.0));
-        gui_context_->Text(text);
+        apigui_text(gui_context_, text);
         snprintf(text, sizeof(text), "Physical Used: %.2f MB", physical_used / (1024.0 * 1024.0));
-        gui_context_->Text(text);
+        apigui_text(gui_context_, text);
         
-        gui_context_->Separator();
+        apigui_separator(gui_context_);
         snprintf(text, sizeof(text), "Quantum Multiplier: %.2fx", multiplier);
-        gui_context_->TextColored(IndependentGUI::Color(1.0f, 1.0f, 0.0f, 1.0f), text);
+        apigui_text_colored(gui_context_, apigui_color(1.0f, 1.0f, 0.0f, 1.0f), text);
         
         // Progress bar for virtual space usage
         float virtual_usage = virtual_total > 0 ? (float)virtual_used / virtual_total : 0.0f;
         snprintf(text, sizeof(text), "%d%%", (int)(virtual_usage * 100));
-        gui_context_->ProgressBar(virtual_usage, IndependentGUI::Vec2(-1.0f, 0.0f), text);
+        apigui_progress_bar(gui_context_, virtual_usage, apigui_vec2(-1.0f, 0.0f), text);
         
-        gui_context_->Separator();
+        apigui_separator(gui_context_);
         snprintf(text, sizeof(text), "Storage Efficiency: %.1f%%", efficiency * 100.0);
-        gui_context_->Text(text);
+        apigui_text(gui_context_, text);
         
         // Health status
         bool is_healthy = system_->IsHealthy();
-        gui_context_->Text("System Health: ");
-        gui_context_->SameLine();
+        apigui_text(gui_context_, "System Health: ");
+        apigui_same_line(gui_context_);
         if (is_healthy) {
-            gui_context_->TextColored(IndependentGUI::Color(0.0f, 1.0f, 0.0f, 1.0f), "HEALTHY");
+            apigui_text_colored(gui_context_, apigui_color(0.0f, 1.0f, 0.0f, 1.0f), "HEALTHY");
         } else {
-            gui_context_->TextColored(IndependentGUI::Color(1.0f, 0.0f, 0.0f, 1.0f), "DEGRADED");
+            apigui_text_colored(gui_context_, apigui_color(1.0f, 0.0f, 0.0f, 1.0f), "DEGRADED");
         }
         
         // Active optimizations
-        gui_context_->Separator();
-        gui_context_->Text("Active Optimizations:");
+        apigui_separator(gui_context_);
+        apigui_text(gui_context_, "Active Optimizations:");
         auto optimizations = system_->GetActiveOptimizations();
         for (size_t i = 0; i < std::min(optimizations.size(), size_t(5)); ++i) {
-            gui_context_->BulletText(optimizations[i].c_str());
+            apigui_bullet_text(gui_context_, optimizations[i].c_str());
         }
         
         if (!status_message_.empty()) {
-            gui_context_->Separator();
-            gui_context_->TextWrapped(status_message_.c_str());
+            apigui_separator(gui_context_);
+            apigui_text_wrapped(gui_context_, status_message_.c_str());
         }
     }
-    gui_context_->EndWindow();
+    apigui_end_window(gui_context_);
 }
 
 void ImGuiGUI::RenderAnalyticsWindow() {
     if (!show_analytics_window_) return;
     
-    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(600, 400), IndependentGUI::FirstUseEver);
-    if (gui_context_->BeginWindow("Storage Analytics Dashboard", &show_analytics_window_)) {
+    apigui_set_next_window_size(gui_context_, apigui_vec2(600, 400), APIGUI_COND_FIRST_USE_EVER);
+    if (apigui_begin_window(gui_context_, "Storage Analytics Dashboard", &show_analytics_window_, apigui_vec2(0, 0), apigui_vec2(0, 0))) {
         auto* analytics = system_->GetAnalyticsDashboard();
         if (analytics) {
-            gui_context_->TextColored(IndependentGUI::Color(0.0f, 1.0f, 1.0f, 1.0f), "Real-Time Analytics");
-            gui_context_->Separator();
+            apigui_text_colored(gui_context_, apigui_color(0.0f, 1.0f, 1.0f, 1.0f), "Real-Time Analytics");
+            apigui_separator(gui_context_);
             
             // Get text report
             std::string report = analytics->GenerateTextReport("summary");
             
             // Parse and display report sections
-            gui_context_->BeginChild("AnalyticsContent", IndependentGUI::Vec2(0, -30), true);
+            apigui_begin_child(gui_context_, "AnalyticsContent", apigui_vec2(0, -30), true);
             
             std::istringstream iss(report);
             std::string line;
             while (std::getline(iss, line)) {
                 if (line.find("===") != std::string::npos) {
-                    gui_context_->TextColored(IndependentGUI::Color(1.0f, 1.0f, 0.0f, 1.0f), line.c_str());
+                    apigui_text_colored(gui_context_, apigui_color(1.0f, 1.0f, 0.0f, 1.0f), line.c_str());
                 } else if (!line.empty()) {
-                    gui_context_->Text(line.c_str());
+                    apigui_text(gui_context_, line.c_str());
                 }
             }
             
-            gui_context_->EndChild();
+            apigui_end_child(gui_context_);
             
-            if (gui_context_->Button("Refresh Analytics")) {
+            if (apigui_button(gui_context_, "Refresh Analytics")) {
                 status_message_ = "Analytics refreshed!";
             }
         } else {
-            gui_context_->Text("Analytics dashboard not available");
+            apigui_text(gui_context_, "Analytics dashboard not available");
         }
     }
-    gui_context_->EndWindow();
+    apigui_end_window(gui_context_);
 }
 
 void ImGuiGUI::RenderFileOpsWindow() {
     if (!show_file_ops_window_) return;
     
-    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(500, 400), IndependentGUI::FirstUseEver);
-    if (gui_context_->BeginWindow("File Operations", &show_file_ops_window_)) {
-        gui_context_->TextColored(IndependentGUI::Color(1.0f, 0.5f, 0.0f, 1.0f), "Virtual File Management");
-        gui_context_->Separator();
+    apigui_set_next_window_size(gui_context_, apigui_vec2(500, 400), APIGUI_COND_FIRST_USE_EVER);
+    if (apigui_begin_window(gui_context_, "File Operations", &show_file_ops_window_, apigui_vec2(0, 0), apigui_vec2(0, 0))) {
+        apigui_text_colored(gui_context_, apigui_color(1.0f, 0.5f, 0.0f, 1.0f), "Virtual File Management");
+        apigui_separator(gui_context_);
         
         // Create file section
-        if (gui_context_->CollapsingHeader("Create Virtual File", true)) {
-            gui_context_->InputText("Filename", filename_buffer_, sizeof(filename_buffer_));
-            gui_context_->SliderInt("Size (MB)", &file_size_mb_, 1, 1000);
+        if (apigui_collapsing_header(gui_context_, "Create Virtual File", true)) {
+            apigui_input_text(gui_context_, "Filename", filename_buffer_, sizeof(filename_buffer_));
+            apigui_slider_int(gui_context_, "Size (MB)", &file_size_mb_, 1, 1000);
             
-            if (gui_context_->Button("Create File")) {
+            if (apigui_button(gui_context_, "Create File")) {
                 if (strlen(filename_buffer_) > 0) {
                     size_t virtual_size = static_cast<size_t>(file_size_mb_) * 1024 * 1024;
                     if (system_->CreateFile(filename_buffer_, virtual_size)) {
@@ -248,12 +251,12 @@ void ImGuiGUI::RenderFileOpsWindow() {
         }
         
         // Write data section
-        if (gui_context_->CollapsingHeader("Write Data to File")) {
-            gui_context_->InputText("Target File", filename_buffer_, sizeof(filename_buffer_));
-            gui_context_->InputTextMultiline("Data", write_data_buffer_, sizeof(write_data_buffer_), 
-                                     IndependentGUI::Vec2(-1.0f, 128.0f));
+        if (apigui_collapsing_header(gui_context_, "Write Data to File", true)) {
+            apigui_input_text(gui_context_, "Target File", filename_buffer_, sizeof(filename_buffer_));
+            apigui_input_text_multiline(gui_context_, "Data", write_data_buffer_, sizeof(write_data_buffer_), 
+                                     apigui_vec2(-1.0f, 128.0f));
             
-            if (gui_context_->Button("Write Data")) {
+            if (apigui_button(gui_context_, "Write Data")) {
                 if (strlen(filename_buffer_) > 0 && strlen(write_data_buffer_) > 0) {
                     if (system_->WriteFile(filename_buffer_, write_data_buffer_, strlen(write_data_buffer_))) {
                         status_message_ = "Data written to '" + std::string(filename_buffer_) + "' successfully!";
@@ -265,10 +268,10 @@ void ImGuiGUI::RenderFileOpsWindow() {
         }
         
         // Read file section
-        if (gui_context_->CollapsingHeader("Read File Data")) {
-            gui_context_->InputText("File to Read", filename_buffer_, sizeof(filename_buffer_));
+        if (apigui_collapsing_header(gui_context_, "Read File Data", true)) {
+            apigui_input_text(gui_context_, "File to Read", filename_buffer_, sizeof(filename_buffer_));
             
-            if (gui_context_->Button("Read File")) {
+            if (apigui_button(gui_context_, "Read File")) {
                 if (strlen(filename_buffer_) > 0) {
                     std::vector<char> buffer(1024 * 1024); // 1MB buffer
                     size_t size = buffer.size();
@@ -285,10 +288,10 @@ void ImGuiGUI::RenderFileOpsWindow() {
         }
         
         // Delete file section
-        if (gui_context_->CollapsingHeader("Delete File")) {
-            gui_context_->InputText("File to Delete", filename_buffer_, sizeof(filename_buffer_));
+        if (apigui_collapsing_header(gui_context_, "Delete File", true)) {
+            apigui_input_text(gui_context_, "File to Delete", filename_buffer_, sizeof(filename_buffer_));
             
-            if (gui_context_->Button("Delete File")) {
+            if (apigui_button(gui_context_, "Delete File")) {
                 if (strlen(filename_buffer_) > 0) {
                     if (system_->DeleteFile(filename_buffer_)) {
                         status_message_ = "File '" + std::string(filename_buffer_) + "' deleted successfully!";
@@ -299,55 +302,55 @@ void ImGuiGUI::RenderFileOpsWindow() {
             }
         }
     }
-    gui_context_->EndWindow();
+    apigui_end_window(gui_context_);
 }
 
 void ImGuiGUI::RenderQuantumVisualization() {
     if (!show_quantum_viz_window_) return;
     
-    gui_context_->SetNextWindowSize(IndependentGUI::Vec2(500, 300), IndependentGUI::FirstUseEver);
-    if (gui_context_->BeginWindow("Quantum Multiplication Visualization", &show_quantum_viz_window_)) {
-        gui_context_->TextColored(IndependentGUI::Color(0.5f, 0.5f, 1.0f, 1.0f), "Quantum Space Multiplication");
-        gui_context_->Separator();
+    apigui_set_next_window_size(gui_context_, apigui_vec2(500, 300), APIGUI_COND_FIRST_USE_EVER);
+    if (apigui_begin_window(gui_context_, "Quantum Multiplication Visualization", &show_quantum_viz_window_, apigui_vec2(0, 0), apigui_vec2(0, 0))) {
+        apigui_text_colored(gui_context_, apigui_color(0.5f, 0.5f, 1.0f, 1.0f), "Quantum Space Multiplication");
+        apigui_separator(gui_context_);
         
         double multiplier = system_->GetSpaceMultiplier();
         size_t virtual_total = system_->GetVirtualSpaceTotal();
         
-        gui_context_->Text("Physical Storage Limit: 5 GB");
+        apigui_text(gui_context_, "Physical Storage Limit: 5 GB");
         
         char text[256];
         snprintf(text, sizeof(text), "Virtual Storage Available: %.2f GB", virtual_total / (1024.0 * 1024.0 * 1024.0));
-        gui_context_->Text(text);
+        apigui_text(gui_context_, text);
         
-        gui_context_->Spacing();
+        apigui_spacing(gui_context_);
         snprintf(text, sizeof(text), "Quantum Multiplier Effect: %.2fx", multiplier);
-        gui_context_->TextColored(IndependentGUI::Color(1.0f, 0.0f, 1.0f, 1.0f), text);
+        apigui_text_colored(gui_context_, apigui_color(1.0f, 0.0f, 1.0f, 1.0f), text);
         
         // Visual representation
-        gui_context_->Spacing();
-        gui_context_->Text("Physical Space:");
-        gui_context_->ProgressBar(1.0f, IndependentGUI::Vec2(-1.0f, 0.0f), "5 GB");
+        apigui_spacing(gui_context_);
+        apigui_text(gui_context_, "Physical Space:");
+        apigui_progress_bar(gui_context_, 1.0f, apigui_vec2(-1.0f, 0.0f), "5 GB");
         
-        gui_context_->Text("Virtual Space (Quantum Multiplied):");
+        apigui_text(gui_context_, "Virtual Space (Quantum Multiplied):");
         float visual_mult = std::min(static_cast<float>(multiplier / 10.0), 1.0f); // Scale for visualization
         snprintf(text, sizeof(text), "%dx Multiplied", (int)multiplier);
-        gui_context_->ProgressBar(visual_mult, IndependentGUI::Vec2(-1.0f, 0.0f), text);
+        apigui_progress_bar(gui_context_, visual_mult, apigui_vec2(-1.0f, 0.0f), text);
         
-        gui_context_->Spacing();
-        gui_context_->Separator();
-        gui_context_->Text("Quantum Features Active:");
-        gui_context_->BulletText("Quantum Superposition Compression");
-        gui_context_->BulletText("ML-Optimized Storage Allocation");
-        gui_context_->BulletText("Entanglement-Based Deduplication");
-        gui_context_->BulletText("Coherence-Maintained State Management");
+        apigui_spacing(gui_context_);
+        apigui_separator(gui_context_);
+        apigui_text(gui_context_, "Quantum Features Active:");
+        apigui_bullet_text(gui_context_, "Quantum Superposition Compression");
+        apigui_bullet_text(gui_context_, "ML-Optimized Storage Allocation");
+        apigui_bullet_text(gui_context_, "Entanglement-Based Deduplication");
+        apigui_bullet_text(gui_context_, "Coherence-Maintained State Management");
         
-        gui_context_->Spacing();
-        if (gui_context_->Button("Run Quantum Demo")) {
+        apigui_spacing(gui_context_);
+        if (apigui_button(gui_context_, "Run Quantum Demo")) {
             status_message_ = "Running quantum multiplication demo...";
             // In a real implementation, you'd call the demo function here
         }
     }
-    gui_context_->EndWindow();
+    apigui_end_window(gui_context_);
 }
 
 void ImGuiGUI::Run() {
@@ -355,7 +358,7 @@ void ImGuiGUI::Run() {
         glfwPollEvents();
         
         // Start frame
-        gui_context_->NewFrame();
+        apigui_new_frame(gui_context_);
         
         // Clear background
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
@@ -369,11 +372,11 @@ void ImGuiGUI::Run() {
         RenderQuantumVisualization();
         
         if (show_demo_window_) {
-            gui_context_->ShowDemoWindow(&show_demo_window_);
+            apigui_show_demo_window(gui_context_, &show_demo_window_);
         }
         
         // Rendering
-        gui_context_->Render();
+        apigui_render(gui_context_);
         
         glfwSwapBuffers(window_);
     }
