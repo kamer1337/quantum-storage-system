@@ -58,13 +58,13 @@ endif()
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
-# ImGui support
-option(USE_IMGUI "Enable ImGui GUI support" OFF)
+# API GUI support (Pure C 5D Renderer)
+option(USE_IMGUI "Enable API GUI support" OFF)
 
 if(USE_IMGUI)
-    # Use independent GUI system
+    # Use pure C API GUI system
     set(GUI_SOURCES
-        src/gui/independent_gui.cpp
+        src/gui/api_gui.c
         src/gui/imgui_gui.cpp
     )
     

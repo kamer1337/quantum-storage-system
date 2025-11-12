@@ -1,13 +1,9 @@
 #pragma once
 
 #include "../quantum_storage_system.h"
-#include <memory>
 
 struct GLFWwindow;
-
-namespace IndependentGUI {
-    class Context;
-}
+struct APIGUIContext;
 
 namespace StorageOpt {
 
@@ -15,7 +11,7 @@ class ImGuiGUI {
 private:
     GLFWwindow* window_;
     QuantumStorageSystem* system_;
-    std::unique_ptr<IndependentGUI::Context> gui_context_;
+    APIGUIContext* gui_context_;
     bool show_demo_window_;
     bool show_status_window_;
     bool show_analytics_window_;
