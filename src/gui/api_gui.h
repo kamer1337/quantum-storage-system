@@ -2,7 +2,7 @@
  * API GUI - Pure C 5D Renderer
  * =============================
  * 
- * A lightweight, pure C implementation of a 5D rendering system for GUI applications.
+ * A lightweight, pure C implementation of an immediate-mode GUI rendering system.
  * 
  * The "5D" concept refers to:
  * 1-3. Spatial dimensions (X, Y, Z) for positioning and depth
@@ -12,19 +12,47 @@
  * This renderer provides:
  * - Pure C API (C99 compatible)
  * - No external GUI library dependencies (only GLFW for windowing and OpenGL for rendering)
- * - Immediate mode rendering paradigm
- * - Built-in text rendering with bitmap fonts
+ * - Immediate mode rendering paradigm (like Dear ImGui)
+ * - Built-in bitmap font rendering (8x13 pixel font for ASCII 32-126)
  * - Full control over rendering pipeline
+ * - OpenGL 2.1 compatibility profile support
  * 
  * Features:
- * - Windows and panels
- * - Buttons, text, input fields, sliders
- * - Progress bars and separators
- * - Menu bars and popup menus
- * - Collapsing headers
+ * - Windows and panels with title bars and borders
+ * - Buttons with hover effects
+ * - Text rendering with colors
+ * - Input fields (text and multiline)
+ * - Sliders (integer)
+ * - Progress bars with overlay text
+ * - Menu bars and popup menus with keyboard shortcuts
+ * - Collapsing headers for expandable sections
  * - Text wrapping and formatting
- * - Color support
- * - Layout management
+ * - Color support (RGBA)
+ * - Layout management with spacing and separators
+ * - Child windows for scrollable regions
+ * 
+ * Usage Example:
+ * ```c
+ * APIGUIContext* ctx = apigui_create_context();
+ * apigui_initialize(ctx, glfw_window);
+ * 
+ * while (!glfwWindowShouldClose(window)) {
+ *     apigui_new_frame(ctx);
+ *     
+ *     if (apigui_begin_window(ctx, "My Window", &open, apigui_vec2(100, 100), apigui_vec2(400, 300))) {
+ *         apigui_text(ctx, "Hello, World!");
+ *         if (apigui_button(ctx, "Click Me")) {
+ *             // Button was clicked
+ *         }
+ *         apigui_end_window(ctx);
+ *     }
+ *     
+ *     apigui_render(ctx);
+ *     glfwSwapBuffers(window);
+ * }
+ * 
+ * apigui_destroy_context(ctx);
+ * ```
  */
 
 #ifndef API_GUI_H

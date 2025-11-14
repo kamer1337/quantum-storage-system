@@ -1,4 +1,4 @@
-#include "imgui_gui.h"
+#include "gui_interface.h"
 #include "api_gui.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -12,7 +12,7 @@ static void glfw_error_callback(int error, const char* description) {
     std::cerr << "GLFW Error " << error << ": " << description << std::endl;
 }
 
-ImGuiGUI::ImGuiGUI(QuantumStorageSystem* system)
+GUIInterface::GUIInterface(QuantumStorageSystem* system)
     : window_(nullptr)
     , system_(system)
     , gui_context_(nullptr)
@@ -27,15 +27,15 @@ ImGuiGUI::ImGuiGUI(QuantumStorageSystem* system)
     write_data_buffer_[0] = '\0';
 }
 
-ImGuiGUI::~ImGuiGUI() {
+GUIInterface::~GUIInterface() {
     Shutdown();
 }
 
-bool ImGuiGUI::Initialize() {
+bool GUIInterface::Initialize() {
     return InitializeWindow();
 }
 
-bool ImGuiGUI::InitializeWindow() {
+bool GUIInterface::InitializeWindow() {
     glfwSetErrorCallback(glfw_error_callback);
     
     if (!glfwInit()) {
@@ -74,11 +74,11 @@ bool ImGuiGUI::InitializeWindow() {
     return true;
 }
 
-void ImGuiGUI::InitializeGUI() {
+void GUIInterface::InitializeGUI() {
     // Already initialized in InitializeWindow
 }
 
-void ImGuiGUI::Shutdown() {
+void GUIInterface::Shutdown() {
     if (window_) {
         if (gui_context_) {
             apigui_destroy_context(gui_context_);
@@ -90,11 +90,11 @@ void ImGuiGUI::Shutdown() {
     }
 }
 
-bool ImGuiGUI::ShouldClose() {
+bool GUIInterface::ShouldClose() {
     return window_ && glfwWindowShouldClose(window_);
 }
 
-void ImGuiGUI::RenderMainMenuBar() {
+void GUIInterface::RenderMainMenuBar() {
     if (apigui_begin_main_menu_bar(gui_context_)) {
         if (apigui_begin_menu(gui_context_, "File")) {
             if (apigui_menu_item(gui_context_, "Exit", "Alt+F4", nullptr)) {
@@ -123,7 +123,7 @@ void ImGuiGUI::RenderMainMenuBar() {
     }
 }
 
-void ImGuiGUI::RenderStatusWindow() {
+void GUIInterface::RenderStatusWindow() {
     if (!show_status_window_) return;
     
     apigui_set_next_window_size(gui_context_, apigui_vec2(500, 300), APIGUI_COND_FIRST_USE_EVER);
@@ -187,7 +187,7 @@ void ImGuiGUI::RenderStatusWindow() {
     apigui_end_window(gui_context_);
 }
 
-void ImGuiGUI::RenderAnalyticsWindow() {
+void GUIInterface::RenderAnalyticsWindow() {
     if (!show_analytics_window_) return;
     
     apigui_set_next_window_size(gui_context_, apigui_vec2(600, 400), APIGUI_COND_FIRST_USE_EVER);
@@ -225,7 +225,7 @@ void ImGuiGUI::RenderAnalyticsWindow() {
     apigui_end_window(gui_context_);
 }
 
-void ImGuiGUI::RenderFileOpsWindow() {
+void GUIInterface::RenderFileOpsWindow() {
     if (!show_file_ops_window_) return;
     
     apigui_set_next_window_size(gui_context_, apigui_vec2(500, 400), APIGUI_COND_FIRST_USE_EVER);
@@ -305,7 +305,7 @@ void ImGuiGUI::RenderFileOpsWindow() {
     apigui_end_window(gui_context_);
 }
 
-void ImGuiGUI::RenderQuantumVisualization() {
+void GUIInterface::RenderQuantumVisualization() {
     if (!show_quantum_viz_window_) return;
     
     apigui_set_next_window_size(gui_context_, apigui_vec2(500, 300), APIGUI_COND_FIRST_USE_EVER);
@@ -353,7 +353,7 @@ void ImGuiGUI::RenderQuantumVisualization() {
     apigui_end_window(gui_context_);
 }
 
-void ImGuiGUI::Run() {
+void GUIInterface::Run() {
     while (!ShouldClose()) {
         glfwPollEvents();
         

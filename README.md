@@ -71,11 +71,11 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 ### Prerequisites
 - C++ compiler with C++17 support (GCC 8+, Clang 7+, MSVC 2019+)
 - CMake 3.15 or higher
-- OpenGL 3.3+ compatible graphics driver (OpenGL loader is included via ImGui)
-- X11 development libraries (Linux) or appropriate windowing system
+- OpenGL 3.3+ compatible graphics driver
+- X11 development libraries (Linux only - for GLFW windowing)
 - Windows 10/11, Linux, or macOS
 
-**Note**: The build system automatically downloads GLFW and includes the necessary OpenGL support for the Independent GUI. No manual installation of these libraries is required.
+**Note**: GLFW is bundled with this repository in the `glfw/` directory. No manual installation of GLFW is required. The build system will automatically use the bundled version or optionally use a system-installed version if available.
 
 ### Build Instructions
 
@@ -123,9 +123,15 @@ A revolutionary storage solution that combines **Machine Learning**, **Quantum-I
 
 ### Build Options
 
-You can disable Independent GUI support if needed:
+You can disable GUI support if needed:
 ```bash
 cmake -DUSE_IMGUI=OFF ..
+cmake --build .
+```
+
+To use system GLFW instead of bundled:
+```bash
+cmake -DUSE_SYSTEM_GLFW=ON ..
 cmake --build .
 ```
 
@@ -456,7 +462,7 @@ Seamless multi-cloud storage expansion:
 - **Menu Navigation**: Easy access to all features through organized menu system
 - **Console Fallback**: Automatically falls back to console mode if GUI cannot initialize
 
-**Note**: The GUI system has been replaced with a pure C 5D renderer (API GUI) that provides all the same functionality without external GUI library dependencies (only GLFW for windowing and OpenGL for rendering).
+**Implementation**: The GUI system uses a pure C "5D renderer" (API GUI) that provides all GUI functionality without external GUI library dependencies. It only requires GLFW for windowing (bundled) and OpenGL 2.1+ for rendering.
 
 **Current Status**: Production-ready pure C implementation with full GUI features
 
@@ -468,11 +474,11 @@ The "5D renderer" concept includes:
 Features:
 - Pure C implementation (C99 compatible)
 - No ImGui or other external GUI library dependencies
-- Immediate mode rendering paradigm
-- Built-in bitmap font rendering
+- Immediate mode rendering paradigm (similar to Dear ImGui)
+- Built-in bitmap font rendering (8x13 pixel font for ASCII 32-126)
 - Full control over rendering pipeline
-- OpenGL-based rendering (OpenGL 2.1 compatibility profile)
-- GLFW for windowing and input handling
+- OpenGL 2.1 compatibility profile support
+- GLFW for windowing and input handling (bundled in repository)
 
 ### Quantum Algorithms
 - **Quantum Deduplication**: Identify similar content across quantum state space
