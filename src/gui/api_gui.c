@@ -1,6 +1,44 @@
 /**
  * API GUI - Pure C 5D Renderer Implementation
  * ============================================
+ * 
+ * This is a lightweight, immediate-mode GUI library written in pure C (C99).
+ * It provides similar functionality to Dear ImGui but with no external dependencies
+ * except GLFW (for windowing) and OpenGL 2.1+ (for rendering).
+ * 
+ * Key Design Principles:
+ * ----------------------
+ * 1. Immediate Mode: GUI state is rebuilt every frame based on application calls
+ * 2. No Dependencies: Only uses GLFW for windowing and OpenGL for rendering
+ * 3. Simple API: Easy to use with minimal setup
+ * 4. Pure C: Compatible with C99 and can be called from C++
+ * 5. Embedded Font: Built-in 8x13 bitmap font for ASCII 32-126
+ * 
+ * Architecture:
+ * -------------
+ * - Context-based API: All state is stored in APIGUIContext
+ * - Window management: Supports multiple windows with title bars and borders
+ * - Widget system: Buttons, text, inputs, sliders, progress bars, etc.
+ * - Menu system: Menu bars and dropdown menus
+ * - Layout: Automatic vertical layout with manual same-line positioning
+ * - Rendering: Immediate-mode OpenGL rendering with orthographic projection
+ * 
+ * Usage Pattern:
+ * --------------
+ * 1. Create context: apigui_create_context()
+ * 2. Initialize: apigui_initialize(ctx, window)
+ * 3. Per frame:
+ *    a. Start frame: apigui_new_frame(ctx)
+ *    b. Define UI: apigui_begin_window(), apigui_text(), etc.
+ *    c. Render: apigui_render(ctx)
+ * 4. Cleanup: apigui_destroy_context(ctx)
+ * 
+ * Performance Notes:
+ * ------------------
+ * - Text rendering uses pixel-by-pixel drawing (not optimized for large text)
+ * - No batching of draw calls (each widget renders immediately)
+ * - Suitable for simple UIs with moderate complexity
+ * - For production use, consider adding vertex batching and texture atlases
  */
 
 #include "api_gui.h"
@@ -48,6 +86,8 @@ typedef struct {
     float menu_x, menu_y;
     int menu_depth;
     char current_menu[64];
+    bool menu_open;
+    float menu_open_x;
 } MenuState;
 
 typedef struct APIGUIContext {
@@ -343,6 +383,19 @@ void apigui_new_frame(APIGUIContext* ctx) {
         ctx->mouse_down[i] = down;
     }
     
+    /* Close menu if clicking outside of menu area */
+    if (ctx->mouse_clicked[0] && ctx->menu_state.menu_open) {
+        float menu_x = ctx->menu_state.menu_open_x;
+        float menu_y = MENU_BAR_HEIGHT;
+        bool in_menu = point_in_rect((float)ctx->mouse_x, (float)ctx->mouse_y,
+                                     menu_x, menu_y, 200.0f, 200.0f);
+        bool in_menu_bar = point_in_rect((float)ctx->mouse_x, (float)ctx->mouse_y,
+                                         0, 0, (float)ctx->display_width, MENU_BAR_HEIGHT);
+        if (!in_menu && !in_menu_bar) {
+            ctx->menu_state.menu_open = false;
+        }
+    }
+    
     /* Setup projection */
     glViewport(0, 0, ctx->display_width, ctx->display_height);
     glMatrixMode(GL_PROJECTION);
@@ -504,15 +557,31 @@ bool apigui_begin_menu(APIGUIContext* ctx, const char* label) {
     render_rect(menu_x, menu_y, label_width, MENU_BAR_HEIGHT, bg_color);
     render_text(menu_x + 10, menu_y + 4, label, apigui_color(1.0f, 1.0f, 1.0f, 1.0f));
     
-    ctx->menu_state.menu_x += label_width;
+    /* Check if this menu should be opened */
+    bool should_open = false;
+    if (hovered && ctx->mouse_clicked[0]) {
+        should_open = true;
+        ctx->menu_state.menu_open = true;
+        ctx->menu_state.menu_open_x = menu_x;
+        strncpy(ctx->menu_state.current_menu, label, sizeof(ctx->menu_state.current_menu) - 1);
+    }
     
-    /* For simplicity, menus open on click */
-    bool is_open = hovered && ctx->mouse_clicked[0];
+    /* Check if this is the currently open menu */
+    bool is_open = ctx->menu_state.menu_open && 
+                   strcmp(ctx->menu_state.current_menu, label) == 0;
     
     if (is_open) {
         ctx->menu_state.in_menu = true;
-        strncpy(ctx->menu_state.current_menu, label, sizeof(ctx->menu_state.current_menu) - 1);
+        ctx->menu_state.menu_depth = 0;
+        
+        /* Render menu background */
+        render_rect(menu_x, MENU_BAR_HEIGHT, 200.0f, 200.0f,
+                   apigui_color(0.25f, 0.25f, 0.3f, 0.95f));
+        render_rect_outline(menu_x, MENU_BAR_HEIGHT, 200.0f, 200.0f,
+                          apigui_color(0.4f, 0.4f, 0.4f, 1.0f), 1.0f);
     }
+    
+    ctx->menu_state.menu_x += label_width;
     
     return is_open;
 }
@@ -520,6 +589,7 @@ bool apigui_begin_menu(APIGUIContext* ctx, const char* label) {
 void apigui_end_menu(APIGUIContext* ctx) {
     if (ctx) {
         ctx->menu_state.in_menu = false;
+        /* Don't close the menu here - let it stay open until user clicks elsewhere */
     }
 }
 
@@ -529,7 +599,7 @@ bool apigui_menu_item(APIGUIContext* ctx, const char* label, const char* shortcu
     /* Calculate menu item dimensions */
     float item_width = 200.0f;
     float item_height = 25.0f;
-    float menu_x = ctx->menu_state.menu_x - item_width;  /* Position under menu */
+    float menu_x = ctx->menu_state.menu_open_x;  /* Use stored menu position */
     float menu_y = MENU_BAR_HEIGHT + ctx->menu_state.menu_depth * item_height;
     
     /* Check if mouse is over menu item */
@@ -543,7 +613,7 @@ bool apigui_menu_item(APIGUIContext* ctx, const char* label, const char* shortcu
     render_rect(menu_x, menu_y, item_width, item_height, bg_color);
     
     /* Render label */
-    render_text(menu_x + 10, menu_y + 6, label, apigui_color(1.0f, 1.0f, 1.0f, 1.0f));
+    render_text(menu_x + 25, menu_y + 6, label, apigui_color(1.0f, 1.0f, 1.0f, 1.0f));
     
     /* Render shortcut if provided */
     if (shortcut) {
@@ -553,15 +623,19 @@ bool apigui_menu_item(APIGUIContext* ctx, const char* label, const char* shortcu
     
     /* Render checkmark if selected */
     if (selected && *selected) {
-        render_text(menu_x + 2, menu_y + 6, "*", apigui_color(1.0f, 1.0f, 0.0f, 1.0f));
+        render_text(menu_x + 5, menu_y + 6, "*", apigui_color(1.0f, 1.0f, 0.0f, 1.0f));
     }
     
     /* Increment menu depth for next item */
     ctx->menu_state.menu_depth++;
     
     /* Toggle selection if clicked and selected pointer is provided */
-    if (clicked && selected) {
-        *selected = !(*selected);
+    if (clicked) {
+        if (selected) {
+            *selected = !(*selected);
+        }
+        /* Close menu after item is clicked */
+        ctx->menu_state.menu_open = false;
     }
     
     return clicked;
