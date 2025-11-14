@@ -59,7 +59,8 @@ find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
 # API GUI support (Pure C 5D Renderer)
-option(USE_IMGUI "Enable API GUI support" OFF)
+option(USE_IMGUI "Enable API GUI support" ON)
+option(USE_SYSTEM_GLFW "Use system GLFW instead of bundled" OFF)
 
 if(USE_IMGUI)
     # Use pure C API GUI system
@@ -68,24 +69,39 @@ if(USE_IMGUI)
         src/gui/imgui_gui.cpp
     )
     
-    # Find GLFW
-    find_package(glfw3 QUIET)
-    if(NOT glfw3_FOUND)
-        # Fetch GLFW if not found
-        include(FetchContent)
-        FetchContent_Declare(
-            glfw
-            GIT_REPOSITORY https://github.com/glfw/glfw.git
-            GIT_TAG 3.3.8
-        )
-        FetchContent_MakeAvailable(glfw)
-    endif()
-    
     # Find OpenGL
     find_package(OpenGL REQUIRED)
     
+    # Handle GLFW - try bundled first, then system, then fetch
+    if(NOT USE_SYSTEM_GLFW AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/glfw/glfw-master/CMakeLists.txt")
+        message(STATUS "Using bundled GLFW from glfw/glfw-master")
+        add_subdirectory(glfw/glfw-master EXCLUDE_FROM_ALL)
+        set(GLFW_TARGET glfw)
+    else()
+        # Try to find system GLFW
+        find_package(glfw3 QUIET)
+        if(glfw3_FOUND)
+            message(STATUS "Using system GLFW")
+            set(GLFW_TARGET glfw)
+        else()
+            # Fetch GLFW as last resort
+            message(STATUS "Downloading GLFW via FetchContent")
+            include(FetchContent)
+            FetchContent_Declare(
+                glfw
+                GIT_REPOSITORY https://github.com/glfw/glfw.git
+                GIT_TAG 3.3.8
+            )
+            set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+            set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+            set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+            FetchContent_MakeAvailable(glfw)
+            set(GLFW_TARGET glfw)
+        endif()
+    endif()
+    
     target_sources(${PROJECT_NAME} PRIVATE ${GUI_SOURCES})
-    target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL)
+    target_link_libraries(${PROJECT_NAME} ${GLFW_TARGET} OpenGL::GL)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USE_IMGUI)
 endif()
 
