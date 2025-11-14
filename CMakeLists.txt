@@ -66,7 +66,7 @@ if(USE_IMGUI)
     # Use pure C API GUI system
     set(GUI_SOURCES
         src/gui/api_gui.c
-        src/gui/imgui_gui.cpp
+        src/gui/gui_interface.cpp
     )
     
     # Find OpenGL

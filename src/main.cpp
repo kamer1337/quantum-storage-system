@@ -1,6 +1,6 @@
 #include "quantum_storage_system.h"
 #ifdef USE_IMGUI
-#include "gui/imgui_gui.h"
+#include "gui/gui_interface.h"
 #endif
 #include <iostream>
 #include <string>
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     if (use_gui) {
         std::cout << "\nLaunching Independent GUI interface..." << std::endl;
         
-        ImGuiGUI gui(&system);
+        GUIInterface gui(&system);
         if (gui.Initialize()) {
             gui.Run();
             system.Stop();

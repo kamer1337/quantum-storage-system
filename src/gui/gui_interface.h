@@ -7,7 +7,14 @@ struct APIGUIContext;
 
 namespace StorageOpt {
 
-class ImGuiGUI {
+/**
+ * GUIInterface - C++ wrapper for the pure C API GUI renderer
+ * 
+ * This class provides a high-level interface to the API GUI system
+ * for the Quantum Storage System. It manages the GUI window, rendering,
+ * and user interactions.
+ */
+class GUIInterface {
 private:
     GLFWwindow* window_;
     QuantumStorageSystem* system_;
@@ -25,7 +32,7 @@ private:
     std::string selected_file_;
     std::string status_message_;
     
-    // Initialize GLFW and Independent GUI
+    // Initialize GLFW and API GUI
     bool InitializeWindow();
     void InitializeGUI();
     void Shutdown();
@@ -38,8 +45,8 @@ private:
     void RenderQuantumVisualization();
     
 public:
-    ImGuiGUI(QuantumStorageSystem* system);
-    ~ImGuiGUI();
+    GUIInterface(QuantumStorageSystem* system);
+    ~GUIInterface();
     
     bool Initialize();
     void Run();
