@@ -130,28 +130,76 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 # Install documentation
-install(FILES README.md
+install(FILES README.md CONTRIBUTING.md LICENSE THIRD-PARTY-LICENSES.md
     DESTINATION share/doc/${PROJECT_NAME}
+)
+
+# Install documentation directory
+install(DIRECTORY docs/
+    DESTINATION share/doc/${PROJECT_NAME}/docs
+    OPTIONAL
 )
 
 # Create example data directory
 install(DIRECTORY DESTINATION share/${PROJECT_NAME}/examples)
 
+# Install GLFW license if using bundled version
+if(USE_IMGUI AND NOT USE_SYSTEM_GLFW AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/glfw/glfw-master/LICENSE.md")
+    install(FILES glfw/glfw-master/LICENSE.md
+        DESTINATION share/doc/${PROJECT_NAME}/third-party-licenses
+        RENAME GLFW-LICENSE.md
+    )
+endif()
+
 # CPack configuration for packaging
-include(CPack)
 set(CPACK_PACKAGE_NAME "QuantumStorageSystem")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR 1)
+set(CPACK_PACKAGE_VERSION_MINOR 0)
+set(CPACK_PACKAGE_VERSION_PATCH 0)
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Advanced ML-Powered Storage Solution with Quantum Optimization")
+set(CPACK_PACKAGE_DESCRIPTION "A revolutionary storage solution that combines Machine Learning, Quantum-Inspired Algorithms, and Advanced Compression to multiply storage space beyond physical limitations.")
 set(CPACK_PACKAGE_VENDOR "Quantum Storage Technologies")
+set(CPACK_PACKAGE_CONTACT "support@quantumstorage.tech")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+
+# Package dependencies note
+if(USE_IMGUI)
+    set(CPACK_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}\n\nThis package includes bundled dependencies:\n- GLFW (included)\n- OpenGL support (requires system OpenGL drivers)")
+endif()
 
 if(WIN32)
     set(CPACK_GENERATOR "NSIS;ZIP")
     set(CPACK_NSIS_DISPLAY_NAME "Quantum Storage System")
-    set(CPACK_NSIS_HELP_LINK "https://github.com/your-org/quantum-storage-system")
-    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/your-org/quantum-storage-system")
+    set(CPACK_NSIS_HELP_LINK "https://github.com/kamer1337/quantum-storage-system")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/kamer1337/quantum-storage-system")
     set(CPACK_NSIS_CONTACT "support@quantumstorage.tech")
+    set(CPACK_NSIS_MODIFY_PATH ON)
+elseif(APPLE)
+    set(CPACK_GENERATOR "DragNDrop;TGZ")
+    set(CPACK_DMG_VOLUME_NAME "Quantum Storage System")
 else()
-    set(CPACK_GENERATOR "TGZ;DEB")
+    set(CPACK_GENERATOR "TGZ;DEB;RPM")
+    
+    # DEB package specific settings
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Quantum Storage Technologies <support@quantumstorage.tech>")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+    set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+    if(USE_IMGUI)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libstdc++6, libgl1")
+    else()
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libstdc++6")
+    endif()
+    
+    # RPM package specific settings
+    set(CPACK_RPM_PACKAGE_LICENSE "MIT")
+    set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
+    if(USE_IMGUI)
+        set(CPACK_RPM_PACKAGE_REQUIRES "glibc, libstdc++, mesa-libGL")
+    else()
+        set(CPACK_RPM_PACKAGE_REQUIRES "glibc, libstdc++")
+    endif()
 endif()
+
+include(CPack)
